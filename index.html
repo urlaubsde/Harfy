@@ -1,0 +1,3642 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harfy</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#5f6e45"/>
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+        /* Custom CSS for Material Design feel, Olive theme, and Arabic font */
+        :root {
+            --olive-50: #f7f8f2;
+            --olive-100: #eef1e4;
+            --olive-200: #dce3c9;
+            --olive-300: #c9d5ad;
+            --olive-400: #a7b983;
+            --olive-500: #8c9e66; /* Main Olive Color */
+            --olive-600: #738453;
+            --olive-700: #5f6e45; /* Darker Olive for backgrounds */
+            --olive-800: #4e5a3a;
+            --olive-900: #414b31;
+            --olive-950: #21271a;
+        }
+
+        /* Light Mode Variables */
+        :root:not(.dark) {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --brand-primary: var(--olive-600);
+            --brand-secondary: var(--olive-500);
+        }
+
+        /* Dark Mode Variables */
+        :root.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --brand-primary: var(--olive-400);
+            --brand-secondary: var(--olive-500);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+            overscroll-behavior-y: contain;
+        }
+        
+        /* تحسينات لتجربة المستخدم على الموبايل */
+        button, .nav-btn, .lang-box {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+            -webkit-tap-highlight-color: transparent; /* إزالة التظليل عند اللمس */
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .tts-active .material-symbols-outlined {
+             color: var(--brand-primary) !important;
+        }
+        
+        .mic-btn.recording .material-symbols-outlined {
+            color: #ef4444 !important; /* Red color for recording */
+            animation: pulse-mic 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse-mic {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .recording-indicator {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            opacity: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 20px;
+            padding: 4px 8px;
+            background-color: var(--olive-700);
+            border-radius: 10px;
+            pointer-events: none;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 6px;
+        }
+
+        .dark .recording-indicator {
+            background-color: var(--bg-secondary);
+        }
+
+        .mic-btn.recording ~ .recording-indicator {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .recording-indicator .bar {
+            width: 4px;
+            height: 4px;
+            background-color: var(--olive-200);
+            border-radius: 2px;
+            animation: recording-wave 1.2s ease-in-out infinite;
+        }
+        .dark .recording-indicator .bar {
+             background-color: var(--brand-primary);
+        }
+
+
+        .recording-indicator .bar:nth-child(2) { animation-delay: 0.2s; }
+        .recording-indicator .bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes recording-wave {
+          0% { height: 4px; }
+          50% { height: 14px; }
+          100% { height: 4px; }
+        }
+
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4a5568; }
+
+        /* Ripple effect for buttons */
+        .ripple { position: relative; overflow: hidden; }
+        .ripple::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 5px; height: 5px; background: rgba(255, 255, 255, 0.5);
+            opacity: 0; border-radius: 100%; transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        @keyframes ripple-effect {
+            0% { transform: scale(0, 0) translate(-50%, -50%); opacity: 1; }
+            100% { transform: scale(20, 20) translate(-50%, -50%); opacity: 0; }
+        }
+        .ripple:focus:not(:active)::after { animation: ripple-effect 1s ease-out; }
+
+        /* Tab styling */
+        .tab-btn {
+            transition: color 0.2s, border-color 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: var(--brand-primary);
+            border-bottom-color: var(--brand-primary);
+        }
+        
+        /* Dark Mode Toggle */
+        #dark-mode-toggle { transition: background-color 0.3s ease; }
+        #dark-mode-toggle-dot { transition: transform 0.3s ease; }
+        :root[dir="ltr"] #dark-mode-toggle-dot { transform: translateX(0px); }
+        :root[dir="ltr"].dark #dark-mode-toggle-dot { transform: translateX(32px); }
+        :root[dir="rtl"] #dark-mode-toggle-dot { transform: translateX(0px); }
+        :root[dir="rtl"].dark #dark-mode-toggle-dot { transform: translateX(-32px); }
+        .sun-icon { opacity: 1; transform: rotate(0deg) scale(1); transition: opacity 0.3s, transform 0.3s; }
+        .moon-icon { opacity: 0; transform: rotate(-90deg) scale(0); transition: opacity 0.3s, transform 0.3s; }
+        .dark .sun-icon { opacity: 0; transform: rotate(90deg) scale(0); }
+        .dark .moon-icon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+        /* --- Custom Color Overrides --- */
+        #nav-bar {
+            background-color: var(--olive-700);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        #nav-bar .nav-btn .icon,
+        #nav-bar .nav-btn .label {
+            color: white;
+            transition: color 0.2s ease-in-out;
+        }
+        #nav-bar .nav-btn.active .icon,
+        #nav-bar .nav-btn.active .label {
+            color: var(--olive-200);
+        }
+        #nav-bar .nav-btn.active .label { font-weight: bold; }
+        #nav-bar .nav-btn.active .icon { font-variation-settings: 'FILL' 1, 'wght' 700; }
+
+        /* Settings Card Styling */
+        :root:not(.dark) .settings-card { background-color: var(--olive-700); color: white; }
+        :root:not(.dark) .settings-card label { color: white; }
+        :root:not(.dark) .settings-card .contact-label { color: white; }
+        
+        .settings-card select {
+            -webkit-appearance: none; 
+            -moz-appearance: none; 
+            appearance: none;
+            background-position: left 0.5rem center;
+            background-repeat: no-repeat;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            padding-right: 1rem;
+            padding-left: 2.25rem;
+            border-radius: 0.375rem;
+        }
+
+        :root:not(.dark) .settings-card select {
+            color: white; 
+            background-color: var(--olive-600); /* Olive green background */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+        
+        .dark .settings-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .dark .settings-card select {
+            background-color: var(--border-color); /* Dark background */
+            color: var(--text-primary); /* Light text */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23f1f5f9' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); /* Light arrow */
+        }
+        
+        :root:not(.dark) .item-card {
+            background-color: white;
+            box-shadow: 0 4px 15px -2px rgba(140, 158, 102, 0.25);
+            border: 1px solid var(--olive-100);
+        }
+        
+        /* Chat Styles */
+        #chat-history { scroll-behavior: smooth; }
+        .user-chat-card { background-color: var(--olive-200); color: var(--olive-800); }
+        .ai-chat-card { background-color: var(--olive-700); color: white; }
+        .ai-chat-card h3 { font-weight: bold; margin-top: 0.75rem; margin-bottom: 0.25rem; color: var(--olive-300); }
+        .ai-chat-card ul { list-style-type: disc; padding-right: 1.5rem; }
+        .dark .ai-chat-card h3 { color: var(--brand-primary); }
+        .exercise-option {
+            background-color: var(--olive-500); color: white; border: none; padding: 0.5rem 1rem;
+            margin: 0.25rem; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s;
+        }
+        .exercise-option:hover { background-color: var(--olive-400); }
+        .exercise-option:disabled { cursor: not-allowed; opacity: 0.8; }
+        .dark .exercise-option { background-color: var(--brand-secondary); }
+        .dark .exercise-option:hover { background-color: var(--olive-600); }
+        
+        .exercise-option.correct {
+            background-color: #22c55e !important; /* Green */
+            color: white !important;
+        }
+        .exercise-option.incorrect {
+            background-color: #ef4444 !important; /* Red */
+            color: white !important;
+        }
+        
+        .ai-chat-card .chat-action-btn .material-symbols-outlined {
+            color: var(--olive-200);
+            font-size: 1rem;
+        }
+        .ai-chat-card .chat-action-btn:hover .material-symbols-outlined {
+            color: white;
+        }
+
+        :root[dir="rtl"] .user-chat-card { align-self: flex-end; }
+        :root[dir="rtl"] .ai-chat-card { align-self: flex-start; }
+        
+        /* Splash Screen Animation */
+        #splash-animation {
+            width: 180px; /* Increased size */
+            height: 180px;
+            position: relative;
+        }
+        #splash-book {
+            animation: book-appear 1s ease-out forwards;
+        }
+        #splash-book-page {
+            transform-origin: left center;
+            animation: page-turn 2s ease-in-out 1s forwards;
+        }
+        #splash-title-container {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--brand-primary);
+            opacity: 0;
+            animation: text-appear 1.5s ease-out 2.5s forwards;
+        }
+        #splash-title-container span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: letter-fade-in 0.5s forwards;
+            animation-delay: calc(2.5s + var(--i) * 0.1s);
+        }
+
+        @keyframes book-appear {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes page-turn {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(-180deg); }
+        }
+        @keyframes text-appear {
+            to { opacity: 1; bottom: -40px; }
+        }
+        @keyframes letter-fade-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Image Analyzer Animation */
+        .analyzer-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .analyzer-animation .icon {
+            font-size: 120px;
+            color: var(--olive-300);
+            font-variation-settings: 'FILL' 1;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .analyzer-animation .scan-line {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--olive-200), transparent);
+            box-shadow: 0 0 10px var(--olive-200);
+            border-radius: 2px;
+            animation: scanning 2s ease-in-out infinite;
+        }
+        @keyframes scanning {
+            0% { top: 15%; }
+            50% { top: 85%; }
+            100% { top: 15%; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+
+        /* Audio Analyzer Animation */
+        .sound-wave-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+        }
+        .sound-wave-animation .bar {
+            width: 8px;
+            height: 5px;
+            margin: 0 3px;
+            background-color: var(--brand-primary);
+            border-radius: 4px;
+            animation: sound-wave 1.2s ease-in-out infinite;
+        }
+        .dark .sound-wave-animation .bar {
+             background-color: var(--brand-primary);
+        }
+        .sound-wave-animation .bar:nth-child(2) { animation-delay: 0.2s; }
+        .sound-wave-animation .bar:nth-child(3) { animation-delay: 0.4s; }
+        .sound-wave-animation .bar:nth-child(4) { animation-delay: 0.6s; }
+        .sound-wave-animation .bar:nth-child(5) { animation-delay: 0.8s; }
+        @keyframes sound-wave {
+            0% { height: 5px; }
+            50% { height: 40px; }
+            100% { height: 5px; }
+        }
+
+        /* File Options Modal Animation */
+        #file-options-sheet.open {
+            transform: translateY(0);
+        }
+
+        /* Theme Color Picker Styles */
+        #theme-arrow-icon.rotated {
+            transform: rotate(180deg);
+        }
+        .color-swatch {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.selected {
+            border-color: var(--brand-primary);
+        }
+
+        /* --- Custom styles for light mode modals --- */
+        :root:not(.dark) #file-options-sheet {
+            background-color: var(--brand-primary);
+        }
+        :root:not(.dark) #file-options-sheet h2,
+        :root:not(.dark) #file-options-sheet button span.font-semibold {
+             color: white;
+        }
+        :root:not(.dark) #file-options-sheet button .material-symbols-outlined {
+            color: white !important;
+        }
+        :root:not(.dark) #file-options-sheet button:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        :root:not(.dark) #language-list button.lang-selected {
+            background-color: var(--brand-primary);
+            color: white;
+        }
+        :root:not(.dark) #language-list button:hover {
+            background-color: var(--brand-primary);
+            color: white;
+        }
+        
+        /* Live Chat Styles */
+        #live-chat-fab {
+            transition: all 0.3s ease-in-out;
+        }
+        #live-chat-fab.hidden {
+            transform: scale(0);
+            opacity: 0;
+        }
+        #live-chat-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #live-chat-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #live-chat-transcript .chat-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1.5rem;
+            max-width: 80%;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+        #live-chat-transcript .ai-bubble {
+            background-color: var(--brand-secondary);
+            color: white;
+            border-bottom-left-radius: 0.25rem;
+            align-self: flex-start;
+        }
+        #live-chat-transcript .user-bubble {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-right-radius: 0.25rem;
+            align-self: flex-end;
+        }
+        .dark #live-chat-transcript .user-bubble {
+             background-color: #334155;
+        }
+
+        .visualizer-bar {
+            width: 6px;
+            margin: 0 3px;
+            background-color: white;
+            border-radius: 3px;
+            transition: height 0.2s ease-out;
+        }
+
+        .live-chat-control-btn {
+            background-color: var(--brand-secondary);
+            opacity: 0.8;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .live-chat-control-btn:hover {
+            opacity: 1;
+        }
+
+        @keyframes listening-wave {
+            0%, 100% { height: 8px; }
+            50% { height: 40px; }
+        }
+        .listening .visualizer-bar {
+            animation: listening-wave 1.2s ease-in-out infinite;
+        }
+        .listening .visualizer-bar:nth-child(2) { animation-delay: 0.1s; }
+        .listening .visualizer-bar:nth-child(3) { animation-delay: 0.2s; }
+        .listening .visualizer-bar:nth-child(4) { animation-delay: 0.3s; }
+        .listening .visualizer-bar:nth-child(5) { animation-delay: 0.4s; }
+        .listening .visualizer-bar:nth-child(6) { animation-delay: 0.5s; }
+        .listening .visualizer-bar:nth-child(7) { animation-delay: 0.6s; }
+        .listening .visualizer-bar:nth-child(8) { animation-delay: 0.7s; }
+        .listening .visualizer-bar:nth-child(9) { animation-delay: 0.8s; }
+        .listening .visualizer-bar:nth-child(10) { animation-delay: 0.9s; }
+        .listening .visualizer-bar:nth-child(11) { animation-delay: 1.0s; }
+        .listening .visualizer-bar:nth-child(12) { animation-delay: 1.1s; }
+
+        @keyframes speaking-wave {
+            0%, 100% { height: 12px; opacity: 0.7; }
+            50% { height: 60px; opacity: 1; }
+        }
+        .speaking .visualizer-bar {
+            animation: speaking-wave 0.8s ease-in-out infinite;
+        }
+        .speaking .visualizer-bar:nth-child(odd) { animation-delay: 0.2s; }
+
+        @keyframes thinking-pulse {
+            0% { transform: scaleY(0.2); opacity: 0.5; }
+            50% { transform: scaleY(1); opacity: 1; }
+            100% { transform: scaleY(0.2); opacity: 0.5; }
+        }
+        .thinking .visualizer-bar {
+            height: 70px;
+            animation: thinking-pulse 1.5s ease-in-out infinite;
+        }
+        .thinking .visualizer-bar:nth-child(2) { animation-delay: 0.1s; }
+        .thinking .visualizer-bar:nth-child(3) { animation-delay: 0.2s; }
+        .thinking .visualizer-bar:nth-child(4) { animation-delay: 0.3s; }
+        .thinking .visualizer-bar:nth-child(5) { animation-delay: 0.4s; }
+        .thinking .visualizer-bar:nth-child(6) { animation-delay: 0.5s; }
+        .thinking .visualizer-bar:nth-child(7) { animation-delay: 0.6s; }
+        .thinking .visualizer-bar:nth-child(8) { animation-delay: 0.7s; }
+        .thinking .visualizer-bar:nth-child(9) { animation-delay: 0.8s; }
+        .thinking .visualizer-bar:nth-child(10) { animation-delay: 0.9s; }
+        .thinking .visualizer-bar:nth-child(11) { animation-delay: 1.0s; }
+        .thinking .visualizer-bar:nth-child(12) { animation-delay: 1.1s; }
+
+        /* PWA Install Banner */
+        #pwa-install-banner {
+            transform: translateY(-100%);
+            transition: transform 0.4s ease-in-out;
+        }
+        #pwa-install-banner.visible {
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+    
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="fixed top-0 left-0 right-0 z-[101] bg-slate-800 text-white p-3 shadow-lg flex items-center justify-center gap-4">
+        <img id="pwa-icon-preview" src="" alt="App Icon" class="w-10 h-10 rounded-lg">
+        <div>
+            <h3 class="font-bold">تثبيت تطبيق Harfy</h3>
+            <p class="text-sm text-slate-300">أضف التطبيق إلى شاشتك الرئيسية لتجربة أفضل.</p>
+        </div>
+        <button id="pwa-install-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg ml-auto mr-2">تثبيت</button>
+        <button id="pwa-close-btn" class="p-2 rounded-full hover:bg-white/10">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <div id="splash-screen" class="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500 overflow-hidden" style="background-color: var(--bg-primary);">
+        <div id="splash-animation" dir="ltr">
+            <svg id="splash-book" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full" style="opacity:0;">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5v-11A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path id="splash-book-page" d="M9 7h6" stroke="var(--brand-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div id="splash-title-container">
+                </div>
+        </div>
+    </div>
+
+    <!-- حاوية التطبيق الرئيسية. تمت إزالة الهامش السفلي العام لتحسين التحكم في كل واجهة على حدة -->
+    <div id="app-container" class="max-w-4xl mx-auto" style="opacity: 0; transition: opacity 0.5s ease-in-out;">
+
+        <!-- تمت إضافة هامش سفلي هنا لتعويض المساحة لشريط التنقل السفلي -->
+        <main id="translate-view" class="p-4 space-y-4 pb-20">
+            <h1 class="text-2xl font-bold text-center" style="color: var(--brand-primary);" data-key="app_title"></h1>
+            
+            <div class="flex items-center justify-between gap-2">
+                <button id="source-lang-btn" class="lang-box flex-1 text-center p-3 rounded-xl shadow-sm transition-transform transform active:scale-95" style="background-color: var(--olive-700);">
+                    <span class="text-xs uppercase text-white/70" data-key="from_language"></span>
+                    <span class="lang-name block text-lg font-bold text-white"></span>
+                </button>
+                <button id="swap-lang-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors transform active:scale-95">
+                    <span class="material-symbols-outlined text-xl" style="color: var(--brand-primary);">swap_horiz</span>
+                </button>
+                <button id="target-lang-btn" class="lang-box flex-1 text-center p-3 rounded-xl shadow-sm transition-transform transform active:scale-95" style="background-color: var(--olive-700);">
+                     <span class="text-xs uppercase text-white/70" data-key="to_language"></span>
+                    <span class="lang-name block text-lg font-bold text-white"></span>
+                </button>
+            </div>
+
+            <div class="card rounded-2xl shadow-lg p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <textarea id="source-text" class="w-full h-32 bg-transparent border-none focus:ring-0 resize-none text-lg p-2" style="color: var(--text-primary);"></textarea>
+                 <div class="flex justify-end items-center mt-2 space-x-2 space-x-reverse">
+                    <div class="relative">
+                        <button id="mic-btn-translate" class="mic-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="voice_input_button">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">mic</span>
+                        </button>
+                        <div class="recording-indicator">
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+                    <button id="camera-btn-translate" class="camera-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="camera_input_button">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">photo_camera</span>
+                    </button>
+                    <button id="new-translation-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="new_translation_button">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">delete_sweep</span>
+                    </button>
+                    <button id="translate-btn" class="ripple flex items-center gap-2 text-white font-bold py-2 px-5 rounded-full shadow-md hover:opacity-90 transition-transform transform active:scale-95" style="background-color: var(--brand-secondary);">
+                        <span data-key="translate_button"></span>
+                        <div id="loader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card rounded-2xl shadow-lg p-4 min-h-[160px]" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div id="target-text" class="w-full min-h-[90px] text-lg p-2" style="color: var(--text-secondary);"></div>
+                <div id="output-actions" class="flex items-center justify-end space-x-2 space-x-reverse mt-2 hidden">
+                    <button id="copy-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">content_copy</span>
+                    </button>
+                    <button id="tts-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">volume_up</span>
+                    </button>
+                    <button id="favorite-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
+                        <span id="favorite-icon" class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">star_outline</span>
+                    </button>
+                </div>
+                <div id="copy-feedback" class="absolute bottom-4 right-4 bg-gray-800 text-white text-sm py-1 px-3 rounded-full opacity-0 transition-opacity">
+                    تم النسخ!
+                </div>
+            </div>
+            
+            <div id="synonyms-card" class="card rounded-2xl shadow-lg p-4 hidden">
+                <h2 class="text-lg font-bold mb-2" style="color: var(--brand-primary);" data-key="synonyms_title"></h2>
+                <div id="synonyms-loader" class="flex justify-center items-center p-4 hidden">
+                    <div class="w-6 h-6 border-2 rounded-full animate-spin" style="border-color: var(--brand-primary); border-top-color: transparent;"></div>
+                </div>
+                <div id="synonyms-list" class="space-y-3"></div>
+                <p id="no-synonyms" class="text-center mt-2 hidden" style="color: var(--text-secondary);" data-key="no_synonyms"></p>
+            </div>
+            
+            <div id="examples-card" class="card rounded-2xl shadow-lg p-4 hidden">
+                <h2 class="text-lg font-bold mb-2" style="color: var(--brand-primary);" data-key="examples_title"></h2>
+                <div id="examples-loader" class="flex justify-center items-center p-4 hidden">
+                    <div class="w-6 h-6 border-2 rounded-full animate-spin" style="border-color: var(--brand-primary); border-top-color: transparent;"></div>
+                </div>
+                <div id="examples-list" class="space-y-3"></div>
+                <p id="no-examples" class="text-center mt-2 hidden" style="color: var(--text-secondary);" data-key="no_examples"></p>
+            </div>
+        </main>
+        
+        <main id="data-view" class="p-4 hidden pb-20">
+             <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold" style="color: var(--brand-primary);" id="data-view-title"></h1>
+                <button id="clear-all-btn" class="text-sm font-semibold hidden" style="color: var(--brand-secondary);" data-key="clear_all"></button>
+            </div>
+            
+            <nav class="flex border-b mb-4 text-sm" style="border-color: var(--border-color);">
+                <button id="favorites-tab" class="tab-btn flex-1 py-2 font-semibold" data-key="favorites_title"></button>
+                <button id="history-tab" class="tab-btn flex-1 py-2 font-semibold" data-key="history_title"></button>
+                <button id="emails-tab" class="tab-btn flex-1 py-2 font-semibold" data-key="emails_title"></button>
+                <button id="chats-tab" class="tab-btn flex-1 py-2 font-semibold" data-key="chats_title"></button>
+            </nav>
+
+            <div id="favorites-list-container">
+                <div id="favorites-list" class="space-y-3"></div>
+                <p id="no-favorites" class="text-center mt-8 hidden" style="color: var(--text-secondary);" data-key="no_favorites"></p>
+            </div>
+
+            <div id="history-list-container" class="hidden">
+                 <div id="history-list" class="space-y-3"></div>
+                <p id="no-history" class="text-center mt-8 hidden" style="color: var(--text-secondary);" data-key="no_history"></p>
+            </div>
+
+            <div id="emails-list-container" class="hidden">
+                 <div id="emails-list" class="space-y-3"></div>
+                <p id="no-emails" class="text-center mt-8 hidden" style="color: var(--text-secondary);" data-key="no_emails"></p>
+            </div>
+            
+            <div id="chats-list-container" class="hidden">
+                 <div id="chats-list" class="space-y-3"></div>
+                <p id="no-chats" class="text-center mt-8 hidden" style="color: var(--text-secondary);" data-key="no_chats"></p>
+            </div>
+        </main>
+
+        <main id="email-writer-view" class="p-4 space-y-4 hidden pb-20">
+            <h1 class="text-2xl font-bold text-center" style="color: var(--brand-primary);" data-key="email_writer_title"></h1>
+
+            <div class="card rounded-2xl shadow-lg p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <textarea id="email-details" class="w-full h-40 bg-transparent border-none focus:ring-0 resize-none text-lg p-2" style="color: var(--text-primary);" data-key-placeholder="email_details_placeholder"></textarea>
+                
+                <div class="flex justify-between items-center mt-2">
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                             <button id="mic-btn-email" class="mic-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="voice_input_button">
+                                <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">mic</span>
+                            </button>
+                            <div class="recording-indicator">
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                            </div>
+                        </div>
+                        <button id="camera-btn-email" class="camera-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="camera_input_button">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">photo_camera</span>
+                        </button>
+                        <div class="flex items-center gap-2 p-2">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">language</span>
+                            <span id="email-lang-display" class="font-semibold" style="color: var(--brand-primary);"></span>
+                        </div>
+                    </div>
+                    <button id="generate-email-btn" class="ripple flex items-center gap-2 text-white font-bold py-2 px-5 rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95" style="background-color: var(--brand-secondary);">
+                        <span data-key="generate_email_button"></span>
+                        <div id="email-loader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card rounded-2xl shadow-lg p-4 min-h-[200px]" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <pre id="email-output" class="w-full min-h-[160px] text-lg p-2 whitespace-pre-wrap font-sans" style="color: var(--text-secondary);"></pre>
+                 <div id="email-output-actions" class="flex items-center justify-end space-x-2 space-x-reverse mt-2 hidden">
+                    <button id="copy-email-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" title="نسخ الإيميل">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">content_copy</span>
+                    </button>
+                    <button id="tts-email-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" title="الاستماع للإيميل">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">volume_up</span>
+                    </button>
+                    <button id="save-email-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" title="حفظ الإيميل">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">save</span>
+                    </button>
+                    <button id="rewrite-email-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" title="إعادة كتابة بصيغة مختلفة">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">autorenew</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- واجهة المحادثة التعليمية: تم تحسينها لتكون ملء الشاشة على الموبايل -->
+        <main id="learn-view" class="p-4 hidden" style="height: calc(100vh - 4rem);">
+            <div class="flex flex-col h-full">
+                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                    <h1 class="text-2xl font-bold" style="color: var(--brand-primary);" data-key="learn_title"></h1>
+                    <div class="flex items-center gap-2">
+                        <button id="new-chat-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="new_chat_button">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">add_comment</span>
+                        </button>
+                        <div class="flex items-center gap-2 p-2">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">language</span>
+                            <span id="learn-lang-display" class="font-semibold" style="color: var(--brand-primary);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تم نقل صندوق الإدخال هنا ليتم تثبيته في الأعلى -->
+                <div id="chat-input-container" class="flex-shrink-0 pt-2 pb-2 border-b dark:border-gray-700 mb-2">
+                     <div id="chat-loader" class="sound-wave-animation hidden mb-2">
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-2xl shadow-inner" style="background-color: var(--bg-secondary);">
+                        <div class="relative">
+                            <button id="mic-btn-learn" class="mic-btn p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-transform transform active:scale-95" data-key-title="voice_input_button">
+                                <span class="material-symbols-outlined" style="color: var(--text-secondary);">mic</span>
+                            </button>
+                            <div class="recording-indicator">
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                            </div>
+                        </div>
+                        <button id="camera-btn-learn" class="camera-btn p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-transform transform active:scale-95" data-key-title="camera_input_button">
+                            <span class="material-symbols-outlined" style="color: var(--text-secondary);">photo_camera</span>
+                        </button>
+                        <input type="text" id="chat-input" class="flex-grow bg-transparent border-none focus:ring-0 text-lg p-2" />
+                        <button id="send-chat-btn" class="p-3 rounded-full shadow-md transition-transform transform active:scale-95" style="background-color: var(--brand-secondary);">
+                            <span class="material-symbols-outlined text-white">send</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="chat-history" class="flex-grow overflow-y-auto p-2 space-y-4 flex flex-col">
+                    <!-- Chat messages render here -->
+                </div>
+
+            </div>
+        </main>
+
+        <main id="settings-view" class="p-4 hidden pb-20">
+            <h1 class="text-2xl font-bold text-center mb-6" style="color: var(--brand-primary);" data-key="settings_title"></h1>
+            <div class="space-y-6 max-w-sm mx-auto">
+                <div class="settings-card flex items-center justify-between p-3 rounded-lg shadow-md">
+                    <label class="font-semibold" data-key="dark_mode"></label>
+                    <button id="dark-mode-toggle" class="relative w-16 h-8 flex items-center rounded-full p-1 cursor-pointer bg-gray-200 dark:bg-gray-700" aria-label="Toggle Dark Mode">
+                        <div id="dark-mode-toggle-dot" class="bg-white w-6 h-6 rounded-full shadow-md flex items-center justify-center">
+                             <span class="material-symbols-outlined sun-icon text-yellow-500">light_mode</span>
+                             <span class="material-symbols-outlined moon-icon text-slate-300 absolute">dark_mode</span>
+                        </div>
+                    </button>
+                </div>
+                 <div class="settings-card flex items-center justify-between p-3 rounded-lg shadow-md">
+                    <label for="language-select" class="font-semibold" data-key="interface_language"></label>
+                    <select id="language-select" class="bg-transparent border-none focus:ring-0 font-semibold">
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="es">Español</option>
+                        <option value="fa">فارسی</option>
+                        <option value="tr">Türkçe</option>
+                        <option value="it">Italiano</option>
+                    </select>
+                </div>
+                 <div class="settings-card flex items-center justify-between p-3 rounded-lg shadow-md">
+                    <label for="voice-select" class="font-semibold" data-key="voice_label"></label>
+                    <select id="voice-select" class="bg-transparent border-none focus:ring-0 font-semibold">
+                        <option value="female" data-key="voice_female"></option>
+                        <option value="male" data-key="voice_male"></option>
+                    </select>
+                </div>
+                <div class="settings-card flex flex-col p-3 rounded-lg shadow-md">
+                    <div id="theme-card-header" class="flex items-center justify-between w-full cursor-pointer">
+                        <label class="font-semibold pointer-events-none" data-key="theme_color"></label>
+                        <div class="flex items-center gap-2 pointer-events-none">
+                            <span id="current-color-swatch" class="w-6 h-6 rounded-full border-2" style="border-color: var(--border-color);"></span>
+                            <span id="theme-arrow-icon" class="material-symbols-outlined transition-transform">expand_more</span>
+                        </div>
+                    </div>
+                    <div id="color-options" class="hidden mt-4 grid grid-cols-5 gap-4">
+                    </div>
+                </div>
+                 <div class="settings-card flex flex-col p-3 rounded-lg shadow-md">
+                    <label class="font-semibold mb-4" data-key="default_languages"></label>
+                    <div class="w-full space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label for="default-translate-lang-select" data-key="feature_translate"></label>
+                            <select id="default-translate-lang-select" class="bg-transparent border-none focus:ring-0 font-semibold"></select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label for="default-email-lang-select" data-key="feature_email"></label>
+                            <select id="default-email-lang-select" class="bg-transparent border-none focus:ring-0 font-semibold"></select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label for="default-learn-lang-select" data-key="feature_learn"></label>
+                            <select id="default-learn-lang-select" class="bg-transparent border-none focus:ring-0 font-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+                <!-- البطاقة الجديدة: وسائل التواصل -->
+                <div class="settings-card flex flex-col p-3 rounded-lg shadow-md">
+                    <label class="font-semibold mb-3 contact-label" data-key="contact_us"></label>
+                    <div class="flex items-start justify-around">
+                        <a href="https://www.facebook.com/profile.php?id=61569379630284" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center text-center w-16" title="Facebook">
+                            <svg class="w-10 h-10 mb-1" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg"><path d="M22,12c0,5.52-4.48,10-10,10S2,17.52,2,12S6.48,2,12,2S22,6.48,22,12ZM15.1,12.3h-2v5.7h-3V12.3H9V9.8h1.1V8.1c0-1.2.6-2.1,2.4-2.1h2v2.5h-1.3c-.3,0-.4.1-.4.4v1.1h1.7l-.2,2.5Z"/></svg>
+                            <span class="text-xs">Facebook</span>
+                        </a>
+                        <a href="https://whatsapp.com/channel/0029Vb6UIICLtOjGYWudNy42" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center text-center w-16" title="WhatsApp Channel">
+                            <svg class="w-10 h-10 mb-1" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm5,13.2a1.8,1.8,0,0,1-2.1,1.5,6,6,0,0,1-3-1.2,8.7,8.7,0,0,1-2.2-2.8,3.1,3.1,0,0,1-.2-1.5,1.8,1.8,0,0,1,1.8-1.5,1,1,0,0,1,.8.4l.1.2a.9.9,0,0,1,0,1,5,5,0,0,0-.4,1.4,1.2,1.2,0,0,0,1.2,1.3,4.1,4.1,0,0,0,2.1-.8.9.9,0,0,1,1.1.1l.1.1A1.8,1.8,0,0,1,17,15.2Z"/></svg>
+                            <span class="text-xs">WhatsApp</span>
+                        </a>
+                         <a href="https://t.me/pause_x" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center text-center w-16" title="Telegram">
+                            <svg class="w-10 h-10 mb-1" viewBox="0 0 24 24" fill="#2AABEE" xmlns="http://www.w3.org/2000/svg"><path d="M21.44,3.46a2.13,2.13,0,0,0-2-1.28,3.34,3.34,0,0,0-1.29.28L3.55,8.83A2.08,2.08,0,0,0,2.1,11.37a2.18,2.18,0,0,0,1.86,1.06H9.3l.36,4.5a2.13,2.13,0,0,0,2.12,1.86,2.06,2.06,0,0,0,1.88-1.16l4.24-9.35A2.13,2.13,0,0,0,21.44,3.46ZM9.86,11.45,17,6.25,11.75,12Z"/></svg>
+                             <span class="text-xs">Telegram</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <nav id="nav-bar" class="fixed bottom-0 left-0 right-0 h-16 z-50" style="opacity: 0; transition: opacity 0.5s ease-in-out;">
+        <div class="max-w-4xl mx-auto flex justify-around items-center h-full">
+            <button class="nav-btn flex flex-col items-center justify-center w-full h-full transition-transform transform active:scale-95" data-view="translate-view">
+                <span class="material-symbols-outlined icon">translate</span>
+                <span class="text-xs label" data-key="nav_translate"></span>
+            </button>
+             <button class="nav-btn flex flex-col items-center justify-center w-full h-full transition-transform transform active:scale-95" data-view="email-writer-view">
+                <span class="material-symbols-outlined icon">mail</span>
+                <span class="text-xs label" data-key="nav_email"></span>
+            </button>
+            <button class="nav-btn flex flex-col items-center justify-center w-full h-full transition-transform transform active:scale-95" data-view="learn-view">
+                <span class="material-symbols-outlined icon">school</span>
+                <span class="text-xs label" data-key="nav_learn"></span>
+            </button>
+            <button class="nav-btn flex flex-col items-center justify-center w-full h-full transition-transform transform active:scale-95" data-view="data-view">
+                <span class="material-symbols-outlined icon">star</span>
+                <span class="text-xs label" data-key="nav_favorites"></span>
+            </button>
+            <button class="nav-btn flex flex-col items-center justify-center w-full h-full transition-transform transform active:scale-95" data-view="settings-view">
+                <span class="material-symbols-outlined icon">settings</span>
+                <span class="text-xs label" data-key="nav_settings"></span>
+            </button>
+        </div>
+    </nav>
+    
+    <div id="language-modal" class="fixed inset-0 z-50 flex flex-col hidden" style="background-color: var(--bg-primary);">
+        <header class="flex items-center p-2 border-b" style="border-color: var(--border-color);">
+            <button id="close-modal-btn" class="p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+            <input type="text" id="search-lang-input" class="flex-grow bg-transparent border-0 focus:ring-0 mx-2 text-lg" >
+        </header>
+        <div id="language-list" class="overflow-y-auto p-2">
+            </div>
+    </div>
+    
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="fixed inset-0 z-[60] flex-col items-center justify-center bg-black/80 hidden">
+        <video id="camera-video" class="w-full h-full object-contain" autoplay playsinline></video>
+        <canvas id="camera-canvas" class="hidden"></canvas>
+        <div class="absolute top-0 left-0 right-0 flex justify-end p-2 bg-gradient-to-b from-black/50 to-transparent">
+            <button id="close-camera-btn" class="text-white p-2 rounded-full hover:bg-white/20">
+                 <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 flex justify-center items-center p-4 bg-gradient-to-t from-black/50 to-transparent">
+            <button id="gallery-btn" class="absolute left-4 text-white p-2 rounded-full hover:bg-white/20">
+                <span class="material-symbols-outlined text-3xl">photo_library</span>
+            </button>
+            <input type="file" id="gallery-input" accept="image/*" class="hidden">
+    
+            <button id="capture-btn" class="w-16 h-16 rounded-full border-4 border-white bg-white/30 hover:bg-white/50 transition"></button>
+    
+            <div class="absolute right-4 w-12 h-12"></div>
+        </div>
+    </div>
+
+    <!-- File Options Modal (Bottom Sheet) -->
+    <div id="file-options-modal" class="fixed inset-0 z-[60] bg-black/60 hidden flex justify-center items-end">
+        <div id="file-options-sheet" class="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-t-2xl p-4 space-y-3 transform translate-y-full transition-transform duration-300" onclick="event.stopPropagation()">
+            <div class="w-10 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-3"></div>
+            <h2 class="text-xl font-bold text-center mb-4" style="color: var(--text-primary);" data-key="upload_title"></h2>
+            <button id="take-photo-btn" class="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined text-2xl" style="color: var(--brand-primary);">photo_camera</span>
+                <span class="text-lg font-semibold" data-key="option_camera"></span>
+            </button>
+            <button id="choose-gallery-btn" class="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined text-2xl" style="color: var(--brand-primary);">photo_library</span>
+                <span class="text-lg font-semibold" data-key="option_gallery"></span>
+            </button>
+            <button id="choose-file-btn" class="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined text-2xl" style="color: var(--brand-primary);">attach_file</span>
+                <span class="text-lg font-semibold" data-key="option_file"></span>
+            </button>
+            <input type="file" id="file-input" class="hidden">
+        </div>
+    </div>
+
+
+    <!-- Image Processing Loader -->
+    <div id="image-processing-loader" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 hidden">
+        <div class="analyzer-animation">
+            <span class="material-symbols-outlined icon">image_search</span>
+            <div class="scan-line"></div>
+        </div>
+        <p class="text-white mt-4 text-lg" data-key="analyzing_image"></p>
+    </div>
+    
+    <!-- File Processing Loader -->
+    <div id="file-processing-loader" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 hidden">
+        <div class="analyzer-animation">
+            <span class="material-symbols-outlined icon" style="font-size: 120px;">description</span>
+            <div class="scan-line"></div>
+        </div>
+        <p class="text-white mt-4 text-lg" data-key="analyzing_file"></p>
+    </div>
+
+    <!-- Audio Processing Loader -->
+    <div id="audio-processing-loader" class="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black/70 hidden">
+        <div class="sound-wave-animation">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <p class="text-white mt-4 text-lg" data-key="analyzing_audio"></p>
+    </div>
+
+
+    <!-- Permissions Modal -->
+    <div id="permissions-modal" class="fixed inset-0 z-[70] flex-col items-center justify-center bg-black/80 p-4 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full text-center shadow-lg">
+            <div class="flex justify-center mb-4">
+                 <span id="permissions-icon" class="material-symbols-outlined text-6xl" style="color: var(--brand-primary);">shield_person</span>
+            </div>
+            <h2 id="permissions-title" class="text-2xl font-bold mb-2" data-key="permissions_title"></h2>
+            <p id="permissions-desc" class="mb-6" style="color: var(--text-secondary);" data-key="permissions_desc_camera"></p>
+            <div class="flex flex-col gap-3">
+                 <button id="grant-permission-btn" class="ripple w-full text-white font-bold py-3 px-5 rounded-full shadow-md transition-transform transform hover:scale-105" style="background-color: var(--brand-secondary);" data-key="permissions_grant"></button>
+                 <button id="deny-permission-btn" class="w-full font-semibold py-3 px-5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" style="color: var(--text-secondary);" data-key="permissions_deny"></button>
+            </div>
+        </div>
+    </div>
+    
+    <button id="live-chat-fab" class="hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform transform hover:scale-110 active:scale-95" style="background-color: var(--brand-secondary);">
+        <span class="material-symbols-outlined text-white text-3xl">hub</span>
+    </button>
+
+    <div id="live-chat-modal" class="fixed inset-0 z-[100] flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 hidden" style="backdrop-filter: blur(8px);">
+        <div class="absolute top-4 right-4">
+            <button id="close-live-chat-btn" class="p-2 rounded-full live-chat-control-btn">
+                <span class="material-symbols-outlined text-white">close</span>
+            </button>
+        </div>
+        
+        <div id="live-chat-transcript" class="flex-grow overflow-y-auto text-xl font-semibold leading-relaxed mb-4 flex flex-col justify-end px-2">
+        </div>
+
+        <div class="flex flex-col items-center justify-center gap-4">
+            <div id="live-chat-visualizer" class="flex items-center justify-center h-24 w-full">
+            </div>
+            <p id="live-chat-status" class="text-white/80 h-6"></p>
+            <button id="pause-live-chat-btn" class="p-4 rounded-full live-chat-control-btn">
+                <span id="pause-icon" class="material-symbols-outlined text-white text-3xl">pause</span>
+            </button>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // --- Gemini API Configuration ---
+        // !!! تنبيه أمني !!!
+        // تخزين مفاتيح الواجهة البرمجية (API Keys) مباشرة في كود العميل (client-side) يعتبر خطراً أمنياً.
+        // هذا المفتاح يكون ظاهراً لأي شخص يقوم بفحص الصفحة.
+        // في التطبيقات الحقيقية (production)، يوصى بشدة باستخدام خادم وسيط (backend proxy)
+        // لمعالجة طلبات الواجهة البرمجية والحفاظ على أمان مفتاحك.
+        const apiKey = "AIzaSyBW_ssoMeMiZNIwlmcjohXhkiKs6Ia9Mpc";
+        const translateApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const ttsApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+        
+        // --- DOM Elements ---
+        const dom = {
+            splashTitleContainer: document.getElementById('splash-title-container'),
+            sourceLangBtn: document.getElementById('source-lang-btn'),
+            targetLangBtn: document.getElementById('target-lang-btn'),
+            swapLangBtn: document.getElementById('swap-lang-btn'),
+            sourceText: document.getElementById('source-text'),
+            targetText: document.getElementById('target-text'),
+            translateBtn: document.getElementById('translate-btn'),
+            newTranslationBtn: document.getElementById('new-translation-btn'),
+            loader: document.getElementById('loader'),
+            outputActions: document.getElementById('output-actions'),
+            copyBtn: document.getElementById('copy-btn'),
+            ttsBtn: document.getElementById('tts-btn'),
+            favoriteBtn: document.getElementById('favorite-btn'),
+            favoriteIcon: document.getElementById('favorite-icon'),
+            copyFeedback: document.getElementById('copy-feedback'),
+            synonymsCard: document.getElementById('synonyms-card'),
+            synonymsLoader: document.getElementById('synonyms-loader'),
+            synonymsList: document.getElementById('synonyms-list'),
+            noSynonymsMsg: document.getElementById('no-synonyms'),
+            examplesCard: document.getElementById('examples-card'),
+            examplesLoader: document.getElementById('examples-loader'),
+            examplesList: document.getElementById('examples-list'),
+            noExamplesMsg: document.getElementById('no-examples'),
+            languageModal: document.getElementById('language-modal'),
+            closeModalBtn: document.getElementById('close-modal-btn'),
+            searchLangInput: document.getElementById('search-lang-input'),
+            languageList: document.getElementById('language-list'),
+            navBtns: document.querySelectorAll('.nav-btn'),
+            views: {
+                translate: document.getElementById('translate-view'),
+                data: document.getElementById('data-view'),
+                settings: document.getElementById('settings-view'),
+                emailWriter: document.getElementById('email-writer-view'),
+                learn: document.getElementById('learn-view'),
+            },
+            dataViewTitle: document.getElementById('data-view-title'),
+            clearAllBtn: document.getElementById('clear-all-btn'),
+            favoritesTab: document.getElementById('favorites-tab'),
+            historyTab: document.getElementById('history-tab'),
+            emailsTab: document.getElementById('emails-tab'),
+            chatsTab: document.getElementById('chats-tab'),
+            favoritesListContainer: document.getElementById('favorites-list-container'),
+            historyListContainer: document.getElementById('history-list-container'),
+            emailsListContainer: document.getElementById('emails-list-container'),
+            chatsListContainer: document.getElementById('chats-list-container'),
+            favoritesList: document.getElementById('favorites-list'),
+            historyList: document.getElementById('history-list'),
+            emailsList: document.getElementById('emails-list'),
+            chatsList: document.getElementById('chats-list'),
+            noFavoritesMsg: document.getElementById('no-favorites'),
+            noHistoryMsg: document.getElementById('no-history'),
+            noEmailsMsg: document.getElementById('no-emails'),
+            noChatsMsg: document.getElementById('no-chats'),
+            darkModeToggle: document.getElementById('dark-mode-toggle'),
+            languageSelect: document.getElementById('language-select'),
+            voiceSelect: document.getElementById('voice-select'),
+            emailDetails: document.getElementById('email-details'),
+            generateEmailBtn: document.getElementById('generate-email-btn'),
+            emailLoader: document.getElementById('email-loader'),
+            emailOutput: document.getElementById('email-output'),
+            emailOutputActions: document.getElementById('email-output-actions'),
+            copyEmailBtn: document.getElementById('copy-email-btn'),
+            rewriteEmailBtn: document.getElementById('rewrite-email-btn'),
+            saveEmailBtn: document.getElementById('save-email-btn'),
+            ttsEmailBtn: document.getElementById('tts-email-btn'),
+            emailLangDisplay: document.getElementById('email-lang-display'),
+            learnLangDisplay: document.getElementById('learn-lang-display'),
+            chatHistory: document.getElementById('chat-history'),
+            chatInput: document.getElementById('chat-input'),
+            sendChatBtn: document.getElementById('send-chat-btn'),
+            chatLoader: document.getElementById('chat-loader'),
+            newChatBtn: document.getElementById('new-chat-btn'),
+            cameraModal: document.getElementById('camera-modal'),
+            cameraVideo: document.getElementById('camera-video'),
+            cameraCanvas: document.getElementById('camera-canvas'),
+            captureBtn: document.getElementById('capture-btn'),
+            galleryBtn: document.getElementById('gallery-btn'),
+            galleryInput: document.getElementById('gallery-input'),
+            closeCameraBtn: document.getElementById('close-camera-btn'),
+            imageProcessingLoader: document.getElementById('image-processing-loader'),
+            cameraBtns: document.querySelectorAll('.camera-btn'),
+            fileOptionsModal: document.getElementById('file-options-modal'),
+            fileOptionsSheet: document.getElementById('file-options-sheet'),
+            takePhotoBtn: document.getElementById('take-photo-btn'),
+            chooseGalleryBtn: document.getElementById('choose-gallery-btn'),
+            chooseFileBtn: document.getElementById('choose-file-btn'),
+            fileInput: document.getElementById('file-input'),
+            fileProcessingLoader: document.getElementById('file-processing-loader'),
+            micBtns: document.querySelectorAll('.mic-btn'),
+            audioProcessingLoader: document.getElementById('audio-processing-loader'),
+            permissionsModal: document.getElementById('permissions-modal'),
+            grantPermissionBtn: document.getElementById('grant-permission-btn'),
+            denyPermissionBtn: document.getElementById('deny-permission-btn'),
+            permissionsIcon: document.getElementById('permissions-icon'),
+            permissionsTitle: document.getElementById('permissions-title'),
+            permissionsDesc: document.getElementById('permissions-desc'),
+            themeCardHeader: document.getElementById('theme-card-header'),
+            colorOptions: document.getElementById('color-options'),
+            currentColorSwatch: document.getElementById('current-color-swatch'),
+            themeArrowIcon: document.getElementById('theme-arrow-icon'),
+            defaultTranslateLangSelect: document.getElementById('default-translate-lang-select'),
+            defaultEmailLangSelect: document.getElementById('default-email-lang-select'),
+            defaultLearnLangSelect: document.getElementById('default-learn-lang-select'),
+            liveChatFab: document.getElementById('live-chat-fab'),
+            liveChatModal: document.getElementById('live-chat-modal'),
+            closeLiveChatBtn: document.getElementById('close-live-chat-btn'),
+            liveChatTranscript: document.getElementById('live-chat-transcript'),
+            pauseLiveChatBtn: document.getElementById('pause-live-chat-btn'),
+            pauseIcon: document.getElementById('pause-icon'),
+            liveChatStatus: document.getElementById('live-chat-status'),
+            liveChatVisualizer: document.getElementById('live-chat-visualizer'),
+            pwa: {
+                installBanner: document.getElementById('pwa-install-banner'),
+                installBtn: document.getElementById('pwa-install-btn'),
+                closeBtn: document.getElementById('pwa-close-btn'),
+                iconPreview: document.getElementById('pwa-icon-preview')
+            },
+        };
+
+        let state = {
+            sourceLang: 'auto',       
+            sourceLangName: '', 
+            targetLang: 'de',       
+            targetLangName: '', 
+            learnLang: 'de',
+            emailLang: 'de',
+            chatHistory: [],
+            savedChats: [],
+            currentTranslation: null,
+            favorites: [],
+            history: [],
+            savedEmails: [],
+            modalContext: 'source',
+            currentDataTab: 'favorites', 
+            ttsVoice: 'female',
+            isRecording: false,
+            isLiveChatActive: false,
+            isLiveChatPaused: false,
+        };
+        let speechVoices = []; 
+        let currentCameraStream = null;
+        let activeInputTarget = null;
+        let speechRecognition;
+        let finalTranscript = '';
+        let currentPermissionRequest = null;
+        let liveSpeechRecognition;
+        let liveChatHistory = [];
+        let liveFinalTranscript = ''; // متغير لتخزين النص النهائي من المحادثة الحية
+        let deferredInstallPrompt = null; // For PWA install prompt
+
+        const themes = {
+            olive: { name: 'Olive', primary: '#738453', secondary: '#8c9e66', bg: '#5f6e45', light: '#dce3c9' },
+            sky:   { name: 'Sky',   primary: '#0369a1', secondary: '#0ea5e9', bg: '#075985', light: '#bae6fd' },
+            rose:  { name: 'Rose',  primary: '#be123c', secondary: '#f43f5e', bg: '#9f1239', light: '#fecdd3' },
+            amber: { name: 'Amber', primary: '#b45309', secondary: '#f59e0b', bg: '#92400e', light: '#fde68a' },
+            teal:  { name: 'Teal',  primary: '#0d9488', secondary: '#14b8a6', bg: '#0f766e', light: '#99f6e4' },
+        };
+
+        const languages = {
+            'auto': { ar: "التعرف التلقائي", en: "Auto-Detect", de: "Automatisch erkennen", es: "Detección automática", fa: "تشخیص خودکار", tr: "Otomatik Algıla", it: "Rilevamento automatico" },
+            'ar': { ar: "العربية", en: "Arabic", de: "Arabisch", es: "Árabe", fa: "عربی", tr: "Arapça", it: "Arabo" },
+            'bn': { ar: "البنغالية", en: "Bengali", de: "Bengalisch", es: "Bengalí", fa: "بنگالی", tr: "Bengalce", it: "Bengalese" },
+            'zh': { ar: "الصينية", en: "Chinese", de: "Chinesisch", es: "Chino", fa: "چینی", tr: "Çince", it: "Cinese" },
+            'nl': { ar: "الهولندية", en: "Dutch", de: "Niederländisch", es: "Holandés", fa: "هلندی", tr: "Felemenkçe", it: "Olandese" },
+            'en': { ar: "الإنجليزية", en: "English", de: "Englisch", es: "Inglés", fa: "انگلیسی", tr: "İngilizce", it: "Inglese" },
+            'fr': { ar: "الفرنسية", en: "French", de: "Französisch", es: "Francés", fa: "فرانسوی", tr: "Fransızca", it: "Francese" },
+            'de': { ar: "الألمانية", en: "German", de: "Deutsch", es: "Alemán", fa: "آلمانی", tr: "Almanca", it: "Tedesco" },
+            'el': { ar: "اليونانية", en: "Greek", de: "Griechisch", es: "Griego", fa: "یونانی", tr: "Yunanca", it: "Greco" },
+            'he': { ar: "العبرية", en: "Hebrew", de: "Hebräisch", es: "Hebreo", fa: "عبری", tr: "İbranice", it: "Ebraico" },
+            'hi': { ar: "الهندية", en: "Hindi", de: "Hindi", es: "Hindi", fa: "هندی", tr: "Hintçe", it: "Hindi" },
+            'id': { ar: "الإندونيسية", en: "Indonesian", de: "Indonesisch", es: "Indonesio", fa: "اندونزیایی", tr: "Endonezce", it: "Indonesiano" },
+            'it': { ar: "الإيطالية", en: "Italian", de: "Italienisch", es: "Italiano", fa: "ایتالیایی", tr: "İtalyanca", it: "Italiano" },
+            'ja': { ar: "اليابانية", en: "Japanese", de: "Japanisch", es: "Japonés", fa: "ژاپنی", tr: "Japonca", it: "Giapponese" },
+            'ko': { ar: "الكورية", en: "Korean", de: "Koreanisch", es: "Coreano", fa: "کره‌ای", tr: "Korece", it: "Coreano" },
+            'ku': { ar: "الكردية", en: "Kurdish", de: "Kurdisch", es: "Kurdo", fa: "کردی", tr: "Kürtçe", it: "Curdo" },
+            'ms': { ar: "الماليزية", en: "Malay", de: "Malaiisch", es: "Malayo", fa: "مالایی", tr: "Malayca", it: "Malese" },
+            'fa': { ar: "الفارسية", en: "Persian", de: "Persisch", es: "Persa", fa: "فارسی", tr: "Farsça", it: "Persiano" },
+            'ps': { ar: "البشتوية", en: "Pashto", de: "Paschtu", es: "Pastún", fa: "پشتو", tr: "Peştuca", it: "Pashto" },
+            'pl': { ar: "البولندية", en: "Polish", de: "Polnisch", es: "Polaco", fa: "لهستانی", tr: "Lehçe", it: "Polacco" },
+            'pt': { ar: "البرتغالية", en: "Portuguese", de: "Portugiesisch", es: "Portugués", fa: "پرتغالی", tr: "Portekizce", it: "Portoghese" },
+            'ru': { ar: "الروسية", en: "Russian", de: "Russisch", es: "Ruso", fa: "روسی", tr: "Rusça", it: "Russo" },
+            'es': { ar: "الإسبانية", en: "Spanish", de: "Spanisch", es: "Español", fa: "اسپانیایی", tr: "İspanyolca", it: "Spagnolo" },
+            'sv': { ar: "السويدية", en: "Swedish", de: "Schwedisch", es: "Sueco", fa: "سوئدی", tr: "İsveççe", it: "Svedese" },
+            'th': { ar: "التايلاندية", en: "Thai", de: "Thailändisch", es: "Tailandés", fa: "تایلندی", tr: "Tayca", it: "Tailandese" },
+            'tr': { ar: "التركية", en: "Turkish", de: "Türkisch", es: "Turco", fa: "ترکی", tr: "Türkçe", it: "Turco" },
+            'ur': { ar: "الأردية", en: "Urdu", de: "Urdu", es: "Urdu", fa: "اردو", tr: "Urduca", it: "Urdu" },
+            'vi': { ar: "الفيتنامية", en: "Vietnamese", de: "Vietnamesisch", es: "Vietnamita", fa: "ویتنامی", tr: "Vietnamca", it: "Vietnamita" },
+        };
+
+        const uiStrings = {
+            en: {
+                app_title: "Harfy",
+                translate_button: "Translate",
+                favorites_title: "Favorites",
+                history_title: "History",
+                emails_title: "Emails",
+                chats_title: "Chats",
+                no_favorites: "No saved translations yet.",
+                no_history: "No items in history.",
+                no_emails: "No saved emails yet.",
+                no_chats: "No saved chats yet.",
+                settings_title: "Settings",
+                dark_mode: "Dark Mode",
+                interface_language: "Interface Language",
+                voice_label: "Speech Voice",
+                voice_female: "Female",
+                voice_male: "Male",
+                theme_color: "Theme Color",
+                default_languages: "Default Languages",
+                contact_us: "Contact Us",
+                feature_translate: "Translate",
+                feature_email: "Email",
+                feature_learn: "Learn",
+                nav_translate: "Translate",
+                nav_favorites: "Saved",
+                nav_settings: "Settings",
+                nav_learn: "Learn",
+                learn_title: "Learning Assistant",
+                new_chat_button: "New Chat",
+                chat_welcome_message: "Welcome! I'm your professional language tutor for {language}. How can I assist you today?",
+                chat_placeholder: "Ask anything...",
+                search_placeholder: "Search for a language...",
+                source_placeholder: "Enter text here...",
+                copied_feedback: "Copied!",
+                saved_feedback: "Saved!",
+                clear_all: "Clear All",
+                nav_email: "Email",
+                email_writer_title: "Professional Email Writer",
+                email_language: "Email Language",
+                email_details_placeholder: "Enter email details here (e.g., requesting 3 days off next week for a family emergency)...",
+                generate_email_button: "Generate Email",
+                from_language: "From",
+                to_language: "To",
+                synonyms_title: "Synonyms",
+                no_synonyms: "No synonyms found for this word.",
+                examples_title: "Examples",
+                no_examples: "No examples found for this word.",
+                permissions_title: "Permission Required",
+                permissions_desc_camera: "To use camera features, the app needs permission to access your camera. It will only be used when you activate it.",
+                permissions_desc_microphone: "To use voice input, the app needs permission to access your microphone. It will only be used when you activate it.",
+                permissions_grant: "Grant Permission",
+                permissions_deny: "Later",
+                analyzing_image: "Analyzing image...",
+                analyzing_audio: "Analyzing audio...",
+                voice_input_button: "Voice Input",
+                camera_input_button: "Camera Input",
+                new_translation_button: "New Translation",
+                upload_title: "Choose Source",
+                option_camera: "Take Photo",
+                option_gallery: "Choose from Gallery",
+                option_file: "Choose File",
+                analyzing_file: "Analyzing file...",
+                live_listening: 'Listening...', 
+                live_thinking: 'Thinking...', 
+                live_paused: 'Paused',
+            },
+            ar: {
+                app_title: "حرفي",
+                translate_button: "ترجمة",
+                favorites_title: "المفضلة",
+                history_title: "السجل",
+                emails_title: "الإيميلات",
+                chats_title: "الدردشات",
+                no_favorites: "لا توجد ترجمات محفوظة بعد.",
+                no_history: "لا توجد عناصر في السجل.",
+                no_emails: "لا توجد إيميلات محفوظة.",
+                no_chats: "لا توجد دردشات محفوظة.",
+                settings_title: "الإعدادات",
+                dark_mode: "الوضع الليلي",
+                interface_language: "لغة الواجهة",
+                voice_label: "صوت النطق",
+                voice_female: "امرأة",
+                voice_male: "رجل",
+                theme_color: "لون الواجهة",
+                default_languages: "اللغات الافتراضية",
+                contact_us: "تواصل معنا",
+                feature_translate: "الترجمة",
+                feature_email: "الإيميل",
+                feature_learn: "التعلم",
+                nav_translate: "ترجمة",
+                nav_favorites: "المحفوظات",
+                nav_settings: "الإعدادات",
+                nav_learn: "تعلم",
+                learn_title: "مساعد التعلم",
+                new_chat_button: "محادثة جديدة",
+                chat_welcome_message: "أهلاً بك! أنا معلمك المحترف للغة {language}. كيف يمكنني مساعدتك اليوم؟",
+                chat_placeholder: "اسأل عن أي شيء...",
+                search_placeholder: "بحث عن لغة...",
+                source_placeholder: "اكتب النص هنا...",
+                copied_feedback: "تم النسخ!",
+                saved_feedback: "تم الحفظ!",
+                clear_all: "مسح الكل",
+                nav_email: "إيميل",
+                email_writer_title: "كاتب الايميلات الاحترافي",
+                email_language: "لغة الإيميل",
+                email_details_placeholder: "اكتب تفاصيل الايميل هنا (مثال: طلب إجازة لمدة 3 أيام الأسبوع المقبل بسبب حالة عائلية طارئة)...",
+                generate_email_button: "إنشاء ايميل",
+                from_language: "من",
+                to_language: "إلى",
+                synonyms_title: "مرادفات",
+                no_synonyms: "لا توجد مرادفات لهذه الكلمة.",
+                examples_title: "أمثلة",
+                no_examples: "لا توجد أمثلة لهذه الكلمة.",
+                permissions_title: "إذن الوصول مطلوب",
+                permissions_desc_camera: "للاستفادة من ميزات الكاميرا، يحتاج التطبيق إلى إذن للوصول إلى الكاميرا. لن يتم استخدامها إلا عندما تقوم بتفعيلها.",
+                permissions_desc_microphone: "للاستفادة من الإدخال الصوتي، يحتاج التطبيق إلى إذن للوصول إلى الميكروفون. لن يتم استخدامه إلا عندما تقوم بتفعيله.",
+                permissions_grant: "منح الإذن",
+                permissions_deny: "لاحقاً",
+                analyzing_image: "جاري تحليل الصورة...",
+                analyzing_audio: "جاري تحليل الصوت...",
+                voice_input_button: "إدخال صوتي",
+                camera_input_button: "ترجمة عبر الكاميرا",
+                new_translation_button: "ترجمة جديدة",
+                upload_title: "اختيار مصدر",
+                option_camera: "التقاط صورة",
+                option_gallery: "اختيار من المعرض",
+                option_file: "اختيار ملف",
+                analyzing_file: "جاري تحليل الملف...",
+                live_listening: 'أستمع...', 
+                live_thinking: 'أفكر...', 
+                live_paused: 'متوقف مؤقتاً',
+            },
+            de: {
+                app_title: "Harfy",
+                translate_button: "Übersetzen",
+                favorites_title: "Favoriten",
+                history_title: "Verlauf",
+                emails_title: "E-Mails",
+                chats_title: "Chats",
+                no_favorites: "Noch keine Übersetzungen gespeichert.",
+                no_history: "Keine Einträge im Verlauf.",
+                no_emails: "Keine E-Mails gespeichert.",
+                no_chats: "Keine Chats gespeichert.",
+                settings_title: "Einstellungen",
+                dark_mode: "Dunkelmodus",
+                interface_language: "Sprache der Benutzeroberfläche",
+                voice_label: "Stimme",
+                voice_female: "Weiblich",
+                voice_male: "Männlich",
+                theme_color: "Themenfarbe",
+                default_languages: "Standardsprachen",
+                contact_us: "Kontakt",
+                feature_translate: "Übersetzen",
+                feature_email: "E-Mail",
+                feature_learn: "Lernen",
+                nav_translate: "Übersetzen",
+                nav_favorites: "Gespeichert",
+                nav_settings: "Einstellungen",
+                nav_learn: "Lernen",
+                learn_title: "Lernassistent",
+                new_chat_button: "Neuer Chat",
+                chat_welcome_message: "Willkommen! Ich bin Ihr professioneller Sprachlehrer für {language}. Wie kann ich Ihnen heute helfen?",
+                chat_placeholder: "Fragen Sie etwas...",
+                search_placeholder: "Sprache suchen...",
+                source_placeholder: "Text hier eingeben...",
+                copied_feedback: "Kopiert!",
+                saved_feedback: "Gespeichert!",
+                clear_all: "Alles löschen",
+                nav_email: "E-Mail",
+                email_writer_title: "Professioneller E-Mail-Verfasser",
+                email_language: "E-Mail-Sprache",
+                email_details_placeholder: "Geben Sie hier E-Mail-Details ein (z. B. Bitte um 3 Tage frei nächste Woche wegen eines Familiennotfalls)...",
+                generate_email_button: "E-Mail erstellen",
+                from_language: "Von",
+                to_language: "Nach",
+                synonyms_title: "Synonyme",
+                no_synonyms: "Keine Synonyme für dieses Wort gefunden.",
+                examples_title: "Beispiele",
+                no_examples: "Keine Beispiele für dieses Wort gefunden.",
+                permissions_title: "Genehmigung erforderlich",
+                permissions_desc_camera: "Um die Kamerafunktionen nutzen zu können, benötigt die App die Berechtigung, auf Ihre Kamera zuzugreifen. Sie wird nur verwendet, wenn Sie sie aktivieren.",
+                permissions_desc_microphone: "Um die Spracheingabe zu verwenden, benötigt die App die Berechtigung, auf Ihr Mikrofon zuzugreifen. Es wird nur verwendet, wenn Sie es aktivieren.",
+                permissions_grant: "Genehmigung erteilen",
+                permissions_deny: "Später",
+                analyzing_image: "Bild wird analysiert...",
+                analyzing_audio: "Audio wird analysiert...",
+                voice_input_button: "Spracheingabe",
+                camera_input_button: "Kamera-Eingabe",
+                new_translation_button: "Neue Übersetzung",
+                upload_title: "Quelle auswählen",
+                option_camera: "Foto machen",
+                option_gallery: "Aus Galerie wählen",
+                option_file: "Datei auswählen",
+                analyzing_file: "Datei wird analysiert...",
+                live_listening: 'Höre zu...', 
+                live_thinking: 'Denke nach...', 
+                live_paused: 'Pausiert',
+            },
+            es: {
+                app_title: "Harfy",
+                translate_button: "Traducir",
+                favorites_title: "Favoritos",
+                history_title: "Historial",
+                emails_title: "Correos",
+                chats_title: "Chats",
+                no_favorites: "Aún no hay traducciones guardadas.",
+                no_history: "No hay elementos en el historial.",
+                no_emails: "No hay correos guardados.",
+                no_chats: "No hay chats guardados.",
+                settings_title: "Configuración",
+                dark_mode: "Modo Oscuro",
+                interface_language: "Idioma de la Interfaz",
+                voice_label: "Voz",
+                voice_female: "Femenina",
+                voice_male: "Masculina",
+                theme_color: "Color del Tema",
+                default_languages: "Idiomas Predeterminados",
+                contact_us: "Contacto",
+                feature_translate: "Traducir",
+                feature_email: "Correo",
+                feature_learn: "Aprender",
+                nav_translate: "Traducir",
+                nav_favorites: "Guardados",
+                nav_settings: "Ajustes",
+                nav_learn: "Aprender",
+                learn_title: "Asistente de Aprendizaje",
+                new_chat_button: "Nuevo Chat",
+                chat_welcome_message: "¡Bienvenido! Soy tu tutor de idiomas profesional para {language}. ¿Cómo puedo ayudarte hoy?",
+                chat_placeholder: "Pregunta cualquier cosa...",
+                search_placeholder: "Buscar un idioma...",
+                source_placeholder: "Escriba el texto aquí...",
+                copied_feedback: "¡Copiado!",
+                saved_feedback: "¡Guardado!",
+                clear_all: "Borrar todo",
+                nav_email: "Correo",
+                email_writer_title: "Escritor de Correo Profesional",
+                email_language: "Idioma del Correo",
+                email_details_placeholder: "Ingrese los detalles del correo aquí (por ejemplo, solicitando 3 días libres la próxima semana para una emergencia familiar)...",
+                generate_email_button: "Generar Correo",
+                from_language: "De",
+                to_language: "A",
+                synonyms_title: "Sinónimos",
+                no_synonyms: "No se encontraron sinónimos para esta palabra.",
+                examples_title: "Ejemplos",
+                no_examples: "No se encontraron ejemplos para esta palabra.",
+                permissions_title: "Permiso requerido",
+                permissions_desc_camera: "Para usar las funciones de la cámara, la aplicación necesita permiso para acceder a su cámara. Solo se usará cuando la active.",
+                permissions_desc_microphone: "Para usar la entrada de voz, la aplicación necesita permiso para acceder a su micrófono. Solo se usará cuando lo active.",
+                permissions_grant: "Conceder permiso",
+                permissions_deny: "Más tarde",
+                analyzing_image: "Analizando imagen...",
+                analyzing_audio: "Analizando audio...",
+                voice_input_button: "Entrada de voz",
+                camera_input_button: "Entrada de cámara",
+                new_translation_button: "Nueva traducción",
+                upload_title: "Elegir fuente",
+                option_camera: "Tomar foto",
+                option_gallery: "Elegir de la galería",
+                option_file: "Elegir archivo",
+                analyzing_file: "Analizando archivo...",
+                live_listening: 'Escuchando...', 
+                live_thinking: 'Pensando...', 
+                live_paused: 'En pausa',
+            },
+            tr: {
+                app_title: "Harfy",
+                translate_button: "Çevir",
+                favorites_title: "Favoriler",
+                history_title: "Geçmiş",
+                emails_title: "E-postalar",
+                chats_title: "Sohbetler",
+                no_favorites: "Henüz kayıtlı çeviri yok.",
+                no_history: "Geçmişte öğe yok.",
+                no_emails: "Kayıtlı e-posta yok.",
+                no_chats: "Kayıtlı sohbet yok.",
+                settings_title: "Ayarlar",
+                dark_mode: "Karanlık Mod",
+                interface_language: "Arayüz Dili",
+                voice_label: "Ses",
+                voice_female: "Kadın",
+                voice_male: "Erkek",
+                theme_color: "Tema Rengi",
+                default_languages: "Varsayılan Diller",
+                contact_us: "Bize Ulaşın",
+                feature_translate: "Çevir",
+                feature_email: "E-posta",
+                feature_learn: "Öğren",
+                nav_translate: "Çevir",
+                nav_favorites: "Kaydedilenler",
+                nav_settings: "Ayarlar",
+                nav_learn: "Öğren",
+                learn_title: "Öğrenme Asistanı",
+                new_chat_button: "Yeni Sohbet",
+                chat_welcome_message: "Hoş geldiniz! Ben sizin {language} için profesyonel dil öğretmeninizim. Bugün size nasıl yardımcı olabilirim?",
+                chat_placeholder: "Herhangi bir şey sor...",
+                search_placeholder: "Dil ara...",
+                source_placeholder: "Metni buraya girin...",
+                copied_feedback: "Kopyalandı!",
+                saved_feedback: "Kaydedildi!",
+                clear_all: "Tümünü Temizle",
+                nav_email: "E-posta",
+                email_writer_title: "Profesyonel E-posta Yazarı",
+                email_language: "E-posta Dili",
+                email_details_placeholder: "E-posta ayrıntılarını buraya girin (örneğin, ailevi bir acil durum için gelecek hafta 3 gün izin isteme)...",
+                generate_email_button: "E-posta Oluştur",
+                from_language: "Kaynak",
+                to_language: "Hedef",
+                synonyms_title: "Eş Anlamlılar",
+                no_synonyms: "Bu kelime için eş anlamlı bulunamadı.",
+                examples_title: "Örnekler",
+                no_examples: "Bu kelime için örnek bulunamadı.",
+                permissions_title: "İzin Gerekli",
+                permissions_desc_camera: "Kamera özelliklerini kullanmak için uygulamanın kameranıza erişim iznine ihtiyacı var. Yalnızca siz etkinleştirdiğinizde kullanılacaktır.",
+                permissions_desc_microphone: "Sesli girişi kullanmak için uygulamanın mikrofonunuza erişim izni gerekir. Yalnızca siz etkinleştirdiğinizde kullanılacaktır.",
+                permissions_grant: "İzin Ver",
+                permissions_deny: "Daha Sonra",
+                analyzing_image: "Resim analiz ediliyor...",
+                analyzing_audio: "Ses analiz ediliyor...",
+                voice_input_button: "Sesli Giriş",
+                camera_input_button: "Kamera Girişi",
+                new_translation_button: "Yeni Çeviri",
+                upload_title: "Kaynak Seç",
+                option_camera: "Fotoğraf Çek",
+                option_gallery: "Galeriden Seç",
+                option_file: "Dosya Seç",
+                analyzing_file: "Dosya analiz ediliyor...",
+                live_listening: 'Dinliyorum...', 
+                live_thinking: 'Düşünüyorum...', 
+                live_paused: 'Duraklatıldı',
+            },
+            it: {
+                app_title: "Harfy",
+                translate_button: "Traduci",
+                favorites_title: "Preferiti",
+                history_title: "Cronologia",
+                emails_title: "Email",
+                chats_title: "Chat",
+                no_favorites: "Nessuna traduzione salvata ancora.",
+                no_history: "Nessun elemento nella cronologia.",
+                no_emails: "Nessuna email salvata.",
+                no_chats: "Nessuna chat salvata.",
+                settings_title: "Impostazioni",
+                dark_mode: "Modalità Scura",
+                interface_language: "Lingua Interfaccia",
+                voice_label: "Voce",
+                voice_female: "Femminile",
+                voice_male: "Maschile",
+                theme_color: "Colore Tema",
+                default_languages: "Lingue Predefinite",
+                contact_us: "Contattaci",
+                feature_translate: "Traduci",
+                feature_email: "Email",
+                feature_learn: "Impara",
+                nav_translate: "Traduci",
+                nav_favorites: "Salvati",
+                nav_settings: "Impostazioni",
+                nav_learn: "Impara",
+                learn_title: "Assistente all'Apprendimento",
+                new_chat_button: "Nuova Chat",
+                chat_welcome_message: "Benvenuto! Sono il tuo tutor di lingua professionale per {language}. Come posso aiutarti oggi?",
+                chat_placeholder: "Chiedi qualsiasi cosa...",
+                search_placeholder: "Cerca una lingua...",
+                source_placeholder: "Inserisci il testo qui...",
+                copied_feedback: "Copiato!",
+                saved_feedback: "Salvato!",
+                clear_all: "Cancella tutto",
+                nav_email: "Email",
+                email_writer_title: "Scrittore di Email Professionale",
+                email_language: "Lingua Email",
+                email_details_placeholder: "Inserisci i dettagli dell'email qui (ad esempio, richiesta di 3 giorni di ferie la prossima settimana per un'emergenza familiare)...",
+                generate_email_button: "Genera Email",
+                from_language: "Da",
+                to_language: "A",
+                synonyms_title: "Sinonimi",
+                no_synonyms: "Nessun sinonimo trovato per questa parola.",
+                examples_title: "Esempi",
+                no_examples: "Nessun esempio trovato per questa parola.",
+                permissions_title: "Permesso Richiesto",
+                permissions_desc_camera: "Per utilizzare le funzioni della fotocamera, l'app necesita il permesso di accedere alla tua fotocamera. Verrà utilizzata solo quando la attivi tu.",
+                permissions_desc_microphone: "Per utilizzare l'input vocale, l'app ha bisogno del permesso di accedere al tuo microfono. Verrà utilizzato solo quando lo attivi.",
+                permissions_grant: "Concedi Permesso",
+                permissions_deny: "Più tardi",
+                analyzing_image: "Analisi dell'immagine...",
+                analyzing_audio: "Analisi dell'audio...",
+                voice_input_button: "Input vocale",
+                camera_input_button: "Input fotocamera",
+                new_translation_button: "Nuova traduzione",
+                upload_title: "Scegli Fonte",
+                option_camera: "Scatta Foto",
+                option_gallery: "Scegli dalla Galleria",
+                option_file: "Scegli File",
+                analyzing_file: "Analisi del file...",
+                live_listening: 'In ascolto...', 
+                live_thinking: 'Sto pensando...', 
+                live_paused: 'In pausa',
+            },
+            fa: {
+                app_title: "حرفي",
+                translate_button: "ترجمه",
+                favorites_title: "موارد دلخواه",
+                history_title: "تاریخچه",
+                emails_title: "ایمیل‌ها",
+                chats_title: "چت‌ها",
+                no_favorites: "ترجمه ذخیره شده‌ای وجود ندارد.",
+                no_history: "موردی در تاریخچه وجود ندارد.",
+                no_emails: "ایمیل ذخیره شده‌ای وجود ندارد.",
+                no_chats: "چت ذخیره شده‌ای وجود ندارد.",
+                settings_title: "تنظیمات",
+                dark_mode: "حالت شب",
+                interface_language: "زبان رابط کاربری",
+                voice_label: "صدای گوینده",
+                voice_female: "زن",
+                voice_male: "مرد",
+                theme_color: "رنگ زمینه",
+                default_languages: "زبان‌های پیش‌فرض",
+                contact_us: "تماس با ما",
+                feature_translate: "ترجمه",
+                feature_email: "ایمیل",
+                feature_learn: "یادگیری",
+                nav_translate: "ترجمه",
+                nav_favorites: "ذخیره شده‌ها",
+                nav_settings: "تنظیمات",
+                nav_learn: "یادگیری",
+                title: "دستیار یادگیری",
+                new_chat_button: "چت جدید",
+                chat_welcome_message: "خوش آمدید! من معلم زبان حرفه‌ای شما برای {language} هستم. امروز چگونه می‌توانم به شما کمک کنم؟",
+                chat_placeholder: "هر چیزی بپرسید...",
+                search_placeholder: "جستجوی زبان...",
+                source_placeholder: "متن را اینجا وارد کنید...",
+                copied_feedback: "کپی شد!",
+                saved_feedback: "ذخیره شد!",
+                clear_all: "پاک کردن همه",
+                nav_email: "ایمیل",
+                email_writer_title: "نویسنده ایمیل حرفه‌ای",
+                email_language: "زبان ایمیل",
+                email_details_placeholder: "جزئیات ایمیل را اینجا وارد کنید (مثلاً: درخواست ۳ روز مرخصی برای هفته آینده به دلیل وضعیت اضطراری خانوادگی)...",
+                generate_email_button: "ایجاد ایمیل",
+                from_language: "از",
+                to_language: "به",
+                synonyms_title: "مترادف‌ها",
+                no_synonyms: "مترادفی برای این کلمه یافت نشد.",
+                examples_title: "مثال‌ها",
+                no_examples: "مثالی برای این کلمه یافت نشد.",
+                permissions_title: "مجوز لازم است",
+                permissions_desc_camera: "برای استفاده از ویژگی‌های دوربین، برنامه به مجوز دسترسی به دوربین شما نیاز دارد. فقط زمانی که شما آن را فعال کنید استفاده خواهد شد.",
+                permissions_desc_microphone: "برای استفاده از ورودی صوتی، برنامه به مجوز دسترسی به میکروفون شما نیاز دارد. فقط زمانی که شما آن را فعال کنید استفاده خواهد شد.",
+                permissions_grant: "اعطای مجوز",
+                permissions_deny: "بعداً",
+                analyzing_image: "در حال تجزیه و تحلیل تصویر...",
+                analyzing_audio: "در حال تجزیه و تحلیل صدا...",
+                voice_input_button: "ورودی صوتی",
+                camera_input_button: "ورودی دوربین",
+                new_translation_button: "ترجمه جدید",
+                upload_title: "انتخاب منبع",
+                option_camera: "گرفتن عکس",
+                option_gallery: "انتخاب از گالری",
+                option_file: "انتخاب فایل",
+                analyzing_file: "در حال تجزیه و تحلیل فایل...",
+                live_listening: 'در حال گوش دادن...', 
+                live_thinking: 'در حال فکر کردن...', 
+                live_paused: 'متوقف شد',
+            }
+        };
+
+        async function detectLanguage(text) {
+            if (!text) return null;
+            try {
+                const detectQuery = `Identify the language of this text. Respond with ONLY the two-letter ISO 639-1 code (e.g., "ar", "de"). Text: "${text}"`;
+                const detectPayload = { contents: [{ parts: [{ text: detectQuery }] }] };
+                const detectResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(detectPayload) });
+                if (!detectResponse.ok) return null;
+                const detectResult = await detectResponse.json();
+                const detectedCode = detectResult.candidates?.[0]?.content?.parts?.[0]?.text.trim().toLowerCase().slice(0, 2);
+                return languages[detectedCode] ? detectedCode : null;
+            } catch (error) {
+                console.error("Language detection failed:", error);
+                return null;
+            }
+        }
+
+        async function extractTextFromImage(base64Data) {
+            if (!apiKey) return { success: false, text: "خطأ: مفتاح الواجهة البرمجية غير موجود." };
+            if (!base64Data) return { success: false, text: "خطأ: بيانات الصورة غير موجودة." };
+
+            dom.imageProcessingLoader.classList.remove('hidden');
+            dom.imageProcessingLoader.classList.add('flex');
+
+            const prompt = "Extract any text visible in this image. Respond with only the extracted text, without any additional explanations, introductions, or formatting.";
+            
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        {
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: base64Data
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: { "temperature": 0.1 } 
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (extractedText) {
+                    return { success: true, text: extractedText.trim() };
+                } else {
+                    console.error("Image Analysis API Error Response:", result);
+                    const errorMessage = result.error?.message || "لم يتم العثور على نص في الصورة.";
+                    return { success: false, text: `خطأ: ${errorMessage}` };
+                }
+            } catch (error) {
+                console.error("Image Text Extraction Error:", error);
+                return { success: false, text: "حدث خطأ أثناء تحليل الصورة." };
+            } finally {
+                dom.imageProcessingLoader.classList.add('hidden');
+                dom.imageProcessingLoader.classList.remove('flex');
+            }
+        }
+
+        async function extractTextFromFile(base64Data, mimeType) {
+            if (!apiKey) return { success: false, text: "خطأ: مفتاح الواجهة البرمجية غير موجود." };
+            dom.fileProcessingLoader.classList.remove('hidden');
+            dom.fileProcessingLoader.classList.add('flex');
+
+            const prompt = "Extract the full text content from the provided file. Respond with only the extracted text, without any additional explanations, introductions, or formatting.";
+            
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: { "temperature": 0.1 } 
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error(`HTTP error! status: ${response.status}`, errorBody);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (extractedText) {
+                    return { success: true, text: extractedText.trim() };
+                } else {
+                    console.error("File Analysis API Error Response:", result);
+                    const errorMessage = result.error?.message || "لم يتم العثور على نص في الملف أو أن نوع الملف غير مدعوم.";
+                    return { success: false, text: `خطأ: ${errorMessage}` };
+                }
+            } catch (error) {
+                console.error("File Text Extraction Error:", error);
+                return { success: false, text: "حدث خطأ أثناء تحليل الملف." };
+            } finally {
+                dom.fileProcessingLoader.classList.add('hidden');
+                dom.fileProcessingLoader.classList.remove('flex');
+            }
+        }
+        
+        async function translateText(text, sourceLangName, targetLangName) {
+            if (!apiKey) return { success: false, text: "خطأ: مفتاح الواجهة البرمجية غير موجود." };
+            dom.loader.classList.remove('hidden');
+            dom.translateBtn.disabled = true;
+
+            let sourceToUse = sourceLangName;
+            let detectedLangInfo = null;
+            const currentUILang = document.documentElement.lang || 'de';
+
+            try {
+                if (sourceLangName === languages['auto'][currentUILang]) {
+                    const detectQuery = `Identify the language of this text. Respond with ONLY the two-letter ISO 639-1 code (e.g., "ar", "de"). Text: "${text}"`;
+                    const detectPayload = { contents: [{ parts: [{ text: detectQuery }] }] };
+                    const detectResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(detectPayload) });
+                    if (!detectResponse.ok) throw new Error('Language detection request failed');
+                    const detectResult = await detectResponse.json();
+                    const detectedCode = detectResult.candidates?.[0]?.content?.parts?.[0]?.text.trim().toLowerCase();
+
+                    if (detectedCode && languages[detectedCode]) {
+                        sourceToUse = languages[detectedCode][currentUILang];
+                        detectedLangInfo = { code: detectedCode, name: sourceToUse };
+                    } else {
+                        throw new Error(`Could not identify or support the detected language.`);
+                    }
+                }
+
+                const translateQuery = `Translate the following text from ${sourceToUse} to ${targetLangName}. Provide only the translation, without any additional text or explanations. Text: "${text}"`;
+                const translatePayload = { contents: [{ parts: [{ text: translateQuery }] }] };
+                const translateResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(translatePayload) });
+                if (!translateResponse.ok) throw new Error('Translation request failed');
+                const translateResult = await translateResponse.json();
+                const translatedText = translateResult.candidates?.[0]?.content?.parts?.[0]?.text.trim();
+
+                if (!translatedText) throw new Error('Failed to get translation from API response');
+
+                return { success: true, text: translatedText, detectedLang: detectedLangInfo };
+
+            } catch (error) {
+                console.error("Translation process error:", error);
+                return { success: false, text: `خطأ: ${error.message}` };
+            } finally {
+                dom.loader.classList.add('hidden');
+                dom.translateBtn.disabled = false;
+            }
+        }
+        
+        async function generateEmail(details, languageName) {
+            if (!apiKey) return "خطأ: مفتاح الواجهة البرمجية غير موجود.";
+            dom.emailLoader.classList.remove('hidden');
+            dom.generateEmailBtn.disabled = true;
+
+            const userQuery = `Act as 'Harfy', an expert language and professional communication coach. Write a formal email in ${languageName} based on the following details. Ensure the tone is professional and the structure is correct (salutation, body, closing). Do not add any extra explanations, just the email text itself. The details are: "${details}"`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: { temperature: 0.5, maxOutputTokens: 4096 }
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return result.candidates[0].content.parts[0].text.trim();
+                } else {
+                    console.error("API Error Response:", result);
+                    return `خطأ: ${result.error?.message || "فشل إنشاء الايميل."}`;
+                }
+            } catch (error) {
+                console.error("Email Generation Error:", error);
+                return "حدث خطأ أثناء إنشاء الايميل.";
+            } finally {
+                dom.emailLoader.classList.add('hidden');
+                dom.generateEmailBtn.disabled = false;
+            }
+        }
+
+        async function rewriteEmail(emailToRewrite, languageName) {
+            if (!apiKey) return "خطأ: مفتاح الواجهة البرمجية غير موجود.";
+            dom.emailLoader.classList.remove('hidden');
+            dom.generateEmailBtn.disabled = true;
+            dom.rewriteEmailBtn.disabled = true;
+
+            const userQuery = `Act as 'Harfy', an expert language and professional communication coach. Rewrite the following formal email in ${languageName} in a different professional style. Maintain the original meaning but vary the phrasing and structure. Do not add any extra explanations, just the rewritten email text itself. The email to rewrite is: "${emailToRewrite}"`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return result.candidates[0].content.parts[0].text.trim();
+                } else {
+                    console.error("API Error Response:", result);
+                    return `خطأ: ${result.error?.message || "فشل إعادة كتابة الايميل."}`;
+                }
+            } catch (error) {
+                console.error("Email Rewrite Error:", error);
+                return "حدث خطأ أثناء إعادة كتابة الايميل.";
+            } finally {
+                dom.emailLoader.classList.add('hidden');
+                dom.generateEmailBtn.disabled = false;
+                dom.rewriteEmailBtn.disabled = false;
+            }
+        }
+        
+        async function getTutorResponse(history, targetLanguageName) {
+             if (!apiKey) return "خطأ: مفتاح الواجهة البرمجية غير موجود.";
+            dom.chatLoader.classList.remove('hidden');
+            dom.sendChatBtn.disabled = true;
+
+            const userQuery = history[history.length - 1].parts[0].text;
+            const detectedLangCode = await detectLanguage(userQuery);
+            const detectedLangName = languages[detectedLangCode]?.en || 'the user\'s language';
+
+            const systemInstruction = `You are 'Harfy', an expert language professor with the highest academic credentials. The user wants to learn ${targetLanguageName}. Your persona is professional, encouraging, and highly educational. Your answers should be unique and not repetitive. Answer the user's question directly and concisely before providing the structured sections.
+
+**Response Rules:**
+1.  First, detect the language of the user's most recent question.
+2.  You MUST write your entire response in the language you just detected (${detectedLangName}).
+3.  Your response must ALWAYS be organized into the following 4 distinct sections, using Markdown for clear headings. Use the detected language for the headings. Do not merge headings with sentences.
+    - **Section 1: The Answer:** Directly and professionally answer the user's question. Provide at least one example in ${targetLanguageName} with its translation into the user's language (${detectedLangName}).
+    - **Section 2: Exercise:** Create one interactive multiple-choice exercise related to the answer. You must use this exact format: [EXERCISE]The exercise sentence with a blank __.|Option A|Option B|Option C|correct_answer_index[/EXERCISE] (index starts from 0).
+    - **Section 3: New Word:** Suggest a new, useful vocabulary word in ${targetLanguageName} for the user to learn. Provide 3 example sentences using this word, with a translation for each sentence into the user's language (${detectedLangName}).
+    - **Section 4: Homework:** Suggest one short homework assignment for the user to do later, related to the topic.`;
+            
+            const payload = {
+                contents: history,
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return result.candidates[0].content.parts[0].text.trim();
+                } else {
+                     console.error("API Error Response:", result);
+                    return `خطأ: ${result.error?.message || "فشل الحصول على رد."}`;
+                }
+            } catch (error) {
+                console.error("Tutor Response Error:", error);
+                return "عذراً، حدث خطأ ما.";
+            } finally {
+                dom.chatLoader.classList.add('hidden');
+                dom.sendChatBtn.disabled = false;
+            }
+        }
+        
+        function playAudioWithWebSpeech(text, langCode, button) {
+            if (!text || !langCode) return;
+            
+            const allTtsButtons = document.querySelectorAll('.tts-item-btn, #tts-btn, #tts-email-btn, .chat-tts-btn');
+            allTtsButtons.forEach(btn => btn.classList.remove('tts-active'));
+            
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = langCode;
+
+            const desiredVoice = speechVoices.find(voice => 
+                voice.lang.startsWith(langCode) && 
+                (state.ttsVoice === 'male' ? /male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name) : !/male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name))
+            );
+            utterance.voice = desiredVoice || speechVoices.find(voice => voice.lang.startsWith(langCode));
+
+            if (!utterance.voice) {
+                console.error(`No voice found for language code: ${langCode}`);
+                showFeedback('custom', `لا يوجد صوت متاح للغة المحددة.`);
+                return;
+            }
+
+            utterance.onstart = () => {
+                if(button) button.classList.add('tts-active');
+            };
+            utterance.onend = () => {
+                if(button) button.classList.remove('tts-active');
+            };
+            utterance.onerror = (event) => {
+                if(button) button.classList.remove('tts-active');
+                if (event.error !== 'interrupted') {
+                 console.error("SpeechSynthesis Error:", event.error);
+                }
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+
+        function loadVoices() {
+            speechVoices = speechSynthesis.getVoices();
+            if (speechVoices.length === 0) {
+                 speechSynthesis.onvoiceschanged = () => {
+                    speechVoices = speechSynthesis.getVoices();
+                 };
+            }
+        }
+        
+        async function getSynonyms(word, sourceLang, targetLang) {
+            if (!apiKey) return [];
+            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide synonyms for a given word and their translations. 1. Find exactly 7 common synonyms for the word in the target language. 2. For each synonym, provide its translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
+            const userQuery = `Word: "${word}", Source Language: "${sourceLang}", Target Language: "${targetLang}"`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "synonym": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["synonym", "translation"] } }
+                }
+            };
+            try {
+                const response = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return JSON.parse(result.candidates[0].content.parts[0].text);
+                }
+                console.error("Synonym API Error Response:", result);
+                return [];
+            } catch (error) {
+                console.error("Error fetching synonyms:", error);
+                return [];
+            }
+        }
+
+        async function getExampleSentences(word, sourceLang, targetLang) {
+            if (!apiKey) return [];
+            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide exactly 5 diverse example sentences for a given word and their translations. 1. Create 5 natural-sounding example sentences in the target language that use the provided word. 2. For each sentence, provide its accurate translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
+            const userQuery = `Word: "${word}", Source Language: "${sourceLang}", Target Language: "${targetLang}"`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { type: "ARRAY", maxItems: 5, items: { type: "OBJECT", properties: { "example": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["example", "translation"] } }
+                }
+            };
+            try {
+                const response = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return JSON.parse(result.candidates[0].content.parts[0].text);
+                }
+                console.error("Example Sentence API Error Response:", result);
+                return [];
+            } catch (error) {
+                console.error("Error fetching examples:", error);
+                return [];
+            }
+        }
+        
+        function checkAndRequestPermission(permissionName) {
+            const isStartupCheck = !permissionName;
+            const checkType = permissionName || 'camera'; 
+            const permissionKey = `permissions_requested_${checkType}`;
+
+            if (isStartupCheck && localStorage.getItem(permissionKey)) {
+                return;
+            }
+
+            const showModal = () => {
+                const lang = document.documentElement.lang;
+                dom.permissionsIcon.textContent = checkType === 'camera' ? 'photo_camera' : 'mic';
+                dom.permissionsDesc.dataset.key = `permissions_desc_${checkType}`;
+                dom.permissionsDesc.textContent = uiStrings[lang][`permissions_desc_${checkType}`];
+                dom.permissionsModal.classList.remove('hidden');
+                dom.permissionsModal.classList.add('flex');
+                currentPermissionRequest = checkType;
+            };
+
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: checkType }).then(permissionStatus => {
+                    if (permissionStatus.state === 'prompt') {
+                        showModal();
+                    } else if (permissionStatus.state === 'denied' && !isStartupCheck) {
+                        showFeedback('custom', `تم رفض إذن ${checkType}. يرجى تفعيله من إعدادات المتصفح.`);
+                    }
+                });
+            } else {
+                showModal(); 
+            }
+        }
+        
+        function handlePermissionGrant() {
+            if (!currentPermissionRequest) return;
+            
+            const permissionName = currentPermissionRequest;
+            const constraints = permissionName === 'camera' ? { video: true } : { audio: true };
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    stream.getTracks().forEach(track => track.stop()); 
+                    localStorage.setItem(`permissions_requested_${permissionName}`, 'true');
+                    dom.permissionsModal.classList.add('hidden');
+                    dom.permissionsModal.classList.remove('flex');
+                    showFeedback('custom', `شكراً لك! تم تفعيل أذونات ${permissionName}.`);
+                })
+                .catch(err => {
+                    console.error("Permission request failed:", err);
+                    localStorage.setItem(`permissions_requested_${permissionName}`, 'true');
+                    dom.permissionsModal.classList.add('hidden');
+                    dom.permissionsModal.classList.remove('flex');
+                    showFeedback('custom', `تم تعطيل ميزات ${permissionName}. يمكنك تفعيلها من إعدادات المتصفح.`);
+                });
+        }
+
+        function openFileOptionsModal(targetInputId) {
+            activeInputTarget = document.getElementById(targetInputId);
+            if (!activeInputTarget) {
+                console.error("Target input not found:", targetInputId);
+                return;
+            }
+            dom.fileOptionsModal.classList.remove('hidden');
+            setTimeout(() => {
+                dom.fileOptionsSheet.classList.add('open');
+            }, 10); 
+        }
+
+        function closeFileOptionsModal() {
+            dom.fileOptionsSheet.classList.remove('open');
+            setTimeout(() => {
+                dom.fileOptionsModal.classList.add('hidden');
+            }, 300); 
+        }
+
+        function openCameraModal(targetInputId) {
+            if(!activeInputTarget) activeInputTarget = document.getElementById(targetInputId);
+            if (!activeInputTarget) {
+                console.error("Target input for camera not found:", targetInputId);
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    currentCameraStream = stream;
+                    dom.cameraVideo.srcObject = stream;
+                    dom.cameraModal.classList.remove('hidden');
+                    dom.cameraModal.classList.add('flex');
+                })
+                .catch(err => {
+                    console.error("Error accessing camera:", err);
+                    checkAndRequestPermission('camera'); 
+                });
+        }
+
+        function closeCameraModal() {
+            if (currentCameraStream) {
+                currentCameraStream.getTracks().forEach(track => track.stop());
+            }
+            currentCameraStream = null;
+            dom.cameraModal.classList.add('hidden');
+            dom.cameraModal.classList.remove('flex');
+        }
+
+        async function processImageAndSetText(base64Data) {
+            const result = await extractTextFromImage(base64Data);
+            if (result.success) {
+                if (activeInputTarget.value !== undefined) {
+                    activeInputTarget.value = result.text;
+                } else {
+                    activeInputTarget.textContent = result.text;
+                }
+                if (activeInputTarget.id === 'source-text') {
+                    dom.translateBtn.click();
+                }
+            } else {
+                showFeedback('custom', result.text);
+            }
+        }
+
+        async function processFileAndSetText(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64Data = e.target.result.split(',')[1];
+                const result = await extractTextFromFile(base64Data, file.type);
+                if (result.success) {
+                    if (activeInputTarget.value !== undefined) {
+                        activeInputTarget.value = result.text;
+                    } else {
+                        activeInputTarget.textContent = result.text;
+                    }
+                    if (activeInputTarget.id === 'source-text') {
+                        dom.translateBtn.click();
+                    }
+                } else {
+                    showFeedback('custom', result.text);
+                }
+            };
+            reader.onerror = (error) => {
+                console.error('File reading error:', error);
+                showFeedback('custom', 'فشل في قراءة الملف.');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function setupSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn("Speech Recognition not supported in this browser.");
+                dom.micBtns.forEach(btn => btn.disabled = true);
+                return;
+            }
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.interimResults = true; 
+            speechRecognition.continuous = false; 
+
+            speechRecognition.onresult = (event) => {
+                let transcript = Array.from(event.results)
+                    .map(result => result[0])
+                    .map(result => result.transcript)
+                    .join('');
+
+                finalTranscript = transcript;
+                
+                if (activeInputTarget) {
+                    activeInputTarget.value = transcript;
+                }
+            };
+            
+            speechRecognition.onend = () => {
+                state.isRecording = false;
+                document.querySelectorAll('.mic-btn.recording').forEach(btn => btn.classList.remove('recording'));
+
+                if (finalTranscript.trim()) {
+                    dom.audioProcessingLoader.classList.remove('hidden');
+                    dom.audioProcessingLoader.classList.add('flex');
+                    
+                    setTimeout(() => {
+                        dom.audioProcessingLoader.classList.add('hidden');
+                        dom.audioProcessingLoader.classList.remove('flex');
+                        
+                        if (activeInputTarget) {
+                            activeInputTarget.value = finalTranscript; 
+                        }
+                        
+                        if (activeInputTarget.id === 'source-text') {
+                            dom.translateBtn.click();
+                        }
+                    }, 800);
+                }
+            };
+            
+            speechRecognition.onerror = (event) => {
+                console.error("Speech Recognition Error:", event.error);
+                state.isRecording = false;
+                document.querySelectorAll('.mic-btn.recording').forEach(btn => btn.classList.remove('recording'));
+                if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                    showFeedback('custom', `خطأ في الصوت: ${event.error}`);
+                }
+            }
+        }
+        
+        function toggleRecording(targetInputId, langCode, buttonEl) {
+            if (!speechRecognition) return;
+
+            if (state.isRecording) {
+                speechRecognition.stop();
+                return;
+            }
+            
+            const startRecording = () => {
+                activeInputTarget = document.getElementById(targetInputId);
+                if (!activeInputTarget) return;
+
+                finalTranscript = '';
+                speechRecognition.lang = langCode === 'auto' ? (document.documentElement.lang || 'de') : langCode;
+                speechRecognition.start();
+                state.isRecording = true;
+                buttonEl.classList.add('recording');
+            }
+
+            navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+                if (permissionStatus.state === 'granted') {
+                    startRecording();
+                } else {
+                    checkAndRequestPermission('microphone');
+                }
+            });
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; 
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showFeedback('copy');
+                } else {
+                    showFeedback('custom', 'فشل النسخ');
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                showFeedback('custom', 'فشل النسخ');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function updateLanguageButtons() {
+            dom.sourceLangBtn.querySelector('.lang-name').textContent = state.sourceLangName;
+            dom.targetLangBtn.querySelector('.lang-name').textContent = state.targetLangName;
+        }
+
+        function openLanguageModal(context) {
+            state.modalContext = context;
+            populateLanguageList();
+            dom.languageModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLanguageModal() {
+            dom.languageModal.classList.add('hidden');
+            dom.searchLangInput.value = '';
+            document.body.style.overflow = 'auto';
+
+            if (!document.documentElement.classList.contains('dark')) {
+                dom.languageList.querySelectorAll('button').forEach(btn => {
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '';
+                });
+            }
+        }
+        
+        function populateLanguageList(filter = '') {
+            const currentUILang = document.documentElement.lang || 'de';
+            dom.languageList.innerHTML = '';
+            let langEntries = Object.entries(languages);
+
+            if (state.modalContext !== 'source') {
+                langEntries = langEntries.filter(([code]) => code !== 'auto');
+            }
+
+            const filteredLanguages = langEntries.filter(([code, names]) => 
+                names[currentUILang].toLowerCase().includes(filter.toLowerCase()) || code.toLowerCase().includes(filter.toLowerCase())
+            );
+            filteredLanguages.forEach(([code, names]) => {
+                const button = document.createElement('button');
+                button.className = 'w-full text-right text-lg p-3 rounded-md dark:hover:bg-gray-700 transition-colors duration-100';
+                button.textContent = names[currentUILang];
+                button.dataset.code = code;
+                
+                button.addEventListener('mousedown', (e) => {
+                    if (!document.documentElement.classList.contains('dark')) {
+                        e.currentTarget.style.backgroundColor = 'var(--brand-primary)';
+                        e.currentTarget.style.color = 'white';
+                    }
+                });
+
+                button.addEventListener('click', handleLanguageSelection);
+
+                dom.languageList.appendChild(button);
+            });
+        }
+        
+        function handleLanguageSelection(event) {
+            const selectedButton = event.currentTarget;
+            const { code } = selectedButton.dataset;
+            const currentUILang = document.documentElement.lang || 'de';
+            const name = languages[code][currentUILang];
+
+            switch(state.modalContext) {
+                case 'source':
+                    state.sourceLang = code;
+                    state.sourceLangName = name;
+                    updateLanguageButtons();
+                    break;
+                case 'target':
+                    state.targetLang = code;
+                    state.targetLangName = name;
+                    updateLanguageButtons();
+                    break;
+            }
+            closeLanguageModal();
+        }
+        
+        function switchView(viewId) {
+            // إيقاف أي عمليات صوت أو كاميرا عند التنقل
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            if (state.isRecording) {
+                speechRecognition.stop();
+            }
+            closeCameraModal(); // إغلاق الكاميرا عند تغيير الواجهة
+
+            Object.values(dom.views).forEach(view => view.classList.add('hidden'));
+            const viewKey = viewId.replace('-view', '').replace(/-./g, x => x[1].toUpperCase());
+            if (dom.views[viewKey]) {
+                dom.views[viewKey].classList.remove('hidden');
+            }
+            dom.navBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === viewId);
+            });
+            if (viewId === 'data-view') {
+                switchDataTab(state.currentDataTab);
+            }
+            dom.liveChatFab.classList.toggle('hidden', viewId !== 'translate-view');
+        }
+        
+        function showFeedback(type, customMessage = '') {
+            const lang = document.documentElement.lang;
+            if (customMessage) {
+                 dom.copyFeedback.textContent = customMessage;
+            } else {
+                const feedbackKey = type === 'copy' ? 'copied_feedback' : 'saved_feedback';
+                dom.copyFeedback.textContent = uiStrings[lang][feedbackKey];
+            }
+            dom.copyFeedback.style.opacity = '1';
+            setTimeout(() => { dom.copyFeedback.style.opacity = '0'; }, 3000); 
+        }
+
+        function updateFavoriteIcon() {
+            if (isCurrentTranslationFavorite()) {
+                dom.favoriteIcon.textContent = 'star';
+                dom.favoriteIcon.style.color = '#facc15';
+                dom.favoriteIcon.style.fontVariationSettings = `'FILL' 1`;
+            } else {
+                dom.favoriteIcon.textContent = 'star_outline';
+                dom.favoriteIcon.style.color = 'var(--text-secondary)';
+                dom.favoriteIcon.style.fontVariationSettings = `'FILL' 0`;
+            }
+        }
+        
+        function renderSynonyms(synonyms) {
+            dom.synonymsList.innerHTML = '';
+            synonyms.forEach(item => {
+                const isFavorited = state.favorites.some(f => f.sourceText === item.translation && f.targetText === item.synonym);
+                const starIcon = isFavorited ? 'star' : 'star_outline';
+                const starStyle = isFavorited 
+                    ? `color: #facc15; font-variation-settings: 'FILL' 1;` 
+                    : `color: var(--text-secondary); font-variation-settings: 'FILL' 0;`;
+
+                const synonymCard = document.createElement('div');
+                synonymCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between';
+                synonymCard.innerHTML = `
+                    <div class="flex-grow">
+                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${item.synonym}</p>
+                        <p class="text-sm" style="color: var(--text-secondary);">${item.translation}</p>
+                    </div>
+                    <div class="flex items-center space-x-1 space-x-reverse">
+                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.synonym}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${item.translation}" data-target="${item.synonym}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
+                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.synonym}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                    </div>`;
+                dom.synonymsList.appendChild(synonymCard);
+            });
+        }
+        
+        async function fetchAndRenderSynonyms(word, sourceLang, targetLang) {
+            dom.synonymsCard.classList.remove('hidden');
+            dom.synonymsList.innerHTML = '';
+            dom.noSynonymsMsg.classList.add('hidden');
+            dom.synonymsLoader.classList.remove('hidden');
+            try {
+                const synonyms = await getSynonyms(word, sourceLang, targetLang);
+                if (synonyms && synonyms.length > 0) renderSynonyms(synonyms);
+                else dom.noSynonymsMsg.classList.remove('hidden');
+            } catch (error) {
+                console.error("Synonym fetch/render failed:", error);
+                dom.synonymsCard.classList.add('hidden');
+            } finally {
+                dom.synonymsLoader.classList.add('hidden');
+            }
+        }
+        
+        function renderExamples(examples) {
+            dom.examplesList.innerHTML = '';
+            examples.forEach(item => {
+                const isFavorited = state.favorites.some(f => f.sourceText === item.translation && f.targetText === item.example);
+                const starIcon = isFavorited ? 'star' : 'star_outline';
+                const starStyle = isFavorited 
+                    ? `color: #facc15; font-variation-settings: 'FILL' 1;` 
+                    : `color: var(--text-secondary); font-variation-settings: 'FILL' 0;`;
+
+                const exampleCard = document.createElement('div');
+                exampleCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between';
+                exampleCard.innerHTML = `
+                    <div class="flex-grow">
+                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${item.example}</p>
+                        <p class="text-sm" style="color: var(--text-secondary);">${item.translation}</p>
+                    </div>
+                    <div class="flex items-center space-x-1 space-x-reverse">
+                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.example}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${item.translation}" data-target="${item.example}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
+                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.example}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                    </div>`;
+                dom.examplesList.appendChild(exampleCard);
+            });
+        }
+
+        async function fetchAndRenderExamples(word, sourceLang, targetLang) {
+            dom.examplesCard.classList.remove('hidden');
+            dom.examplesList.innerHTML = '';
+            dom.noExamplesMsg.classList.add('hidden');
+            dom.examplesLoader.classList.remove('hidden');
+            try {
+                const examples = await getExampleSentences(word, sourceLang, targetLang);
+                if (examples && examples.length > 0) renderExamples(examples);
+                else dom.noExamplesMsg.classList.remove('hidden');
+            } catch (error) {
+                console.error("Example fetch/render failed:", error);
+                dom.examplesCard.classList.add('hidden');
+            } finally {
+                dom.examplesLoader.classList.add('hidden');
+            }
+        }
+        
+        function renderChatHistory() {
+            dom.chatHistory.innerHTML = '';
+            const currentUILang = document.documentElement.lang || 'de';
+            const langName = languages[state.learnLang][currentUILang];
+            const chatMessages = (state.chatHistory.length === 0) 
+                ? [{ role: 'model', parts: [{ text: (uiStrings[currentUILang].chat_welcome_message || uiStrings['de'].chat_welcome_message).replace('{language}', langName) }] }]
+                : state.chatHistory;
+
+            chatMessages.forEach(message => {
+                const messageCard = document.createElement('div');
+                const isUser = message.role === 'user';
+                messageCard.className = `p-4 rounded-2xl max-w-[80%] whitespace-pre-wrap ${isUser ? 'user-chat-card' : 'ai-chat-card flex flex-col'}`;
+                
+                const textContentDiv = document.createElement('div');
+                textContentDiv.className = 'chat-content';
+                textContentDiv.innerHTML = parseMarkdown(message.parts[0].text);
+                messageCard.appendChild(textContentDiv);
+
+                if (!isUser) {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'flex items-center self-end space-x-1 space-x-reverse mt-2';
+                    actionsDiv.innerHTML = `
+                        <button class="chat-action-btn chat-copy-btn p-1 rounded-full hover:bg-white/20" title="نسخ"><span class="material-symbols-outlined pointer-events-none">content_copy</span></button>
+                        <button class="chat-action-btn chat-tts-btn p-1 rounded-full hover:bg-white/20" title="نطق"><span class="material-symbols-outlined pointer-events-none">volume_up</span></button>
+                    `;
+                    messageCard.appendChild(actionsDiv);
+                }
+                
+                dom.chatHistory.appendChild(messageCard);
+            });
+            dom.chatHistory.scrollTop = dom.chatHistory.scrollHeight;
+        }
+
+        function parseMarkdown(text) {
+            let html = text;
+            const exerciseRegex = /\[EXERCISE\](.*?)\[\/EXERCISE\]/s;
+            const match = html.match(exerciseRegex);
+
+            if (match) {
+                const exerciseData = match[1].split('|');
+                const question = exerciseData[0];
+                const options = exerciseData.slice(1, -1);
+                const correctIndex = parseInt(exerciseData[exerciseData.length - 1]);
+                
+                let optionsHtml = '<div class="mt-2">';
+                options.forEach((option, index) => {
+                    optionsHtml += `<button class="exercise-option" data-correct="${index === correctIndex}">${option}</button>`;
+                });
+                optionsHtml += '</div>';
+
+                html = html.replace(exerciseRegex, `<p>${question.replace(/__/g, '<strong>___</strong>')}</p>${optionsHtml}`);
+            }
+
+            html = html
+                .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/[\*-] (.*?)\n/g, '<li>$1</li>');
+
+            return html.replace(/<li>/g, '<ul><li>').replace(/<\/li>(?!<li>)/g, '</li></ul>');
+        }
+
+        function loadData() {
+            state.favorites = JSON.parse(localStorage.getItem('translator_favorites')) || [];
+            state.history = JSON.parse(localStorage.getItem('translator_history')) || [];
+            state.savedEmails = JSON.parse(localStorage.getItem('translator_savedEmails')) || [];
+            state.savedChats = JSON.parse(localStorage.getItem('translator_savedChats')) || [];
+            state.ttsVoice = localStorage.getItem('translator_voice') || 'female';
+            state.targetLang = localStorage.getItem('default_translate_lang') || 'de';
+            state.learnLang = localStorage.getItem('default_learn_lang') || 'de';
+            state.emailLang = localStorage.getItem('default_email_lang') || 'de';
+        }
+
+        function saveData(type) {
+            localStorage.setItem(`translator_${type}`, JSON.stringify(state[type]));
+        }
+
+        function isCurrentTranslationFavorite() {
+            if (!state.currentTranslation) return false;
+            return state.favorites.some(fav => fav.sourceText === state.currentTranslation.sourceText && fav.targetText === state.currentTranslation.targetText);
+        }
+
+        function toggleFavorite() {
+            if (!state.currentTranslation) return;
+            const index = state.favorites.findIndex(fav => fav.sourceText === state.currentTranslation.sourceText && fav.targetText === state.currentTranslation.targetText);
+            if (index > -1) state.favorites.splice(index, 1);
+            else state.favorites.unshift(state.currentTranslation);
+            saveData('favorites');
+            updateFavoriteIcon();
+        }
+
+        function addToHistory(translation) {
+            const existingIndex = state.history.findIndex(item => item.sourceText === translation.sourceText);
+            if (existingIndex > -1) state.history.splice(existingIndex, 1);
+            state.history.unshift(translation);
+            if (state.history.length > 50) state.history.pop();
+            saveData('history');
+        }
+
+        function saveEmail() {
+            const emailText = dom.emailOutput.textContent.trim();
+            if (!emailText || emailText.startsWith('خطأ:')) return;
+            const emailObject = { text: emailText, lang: state.emailLang, date: new Date().toISOString() };
+            const existingIndex = state.savedEmails.findIndex(item => item.text === emailText);
+            if (existingIndex > -1) state.savedEmails.splice(existingIndex, 1);
+            state.savedEmails.unshift(emailObject);
+            saveData('savedEmails');
+            showFeedback('save');
+        }
+
+        function renderList(type) {
+            const listEl = dom[`${type}List`];
+            const noItemsEl = dom[`no${type.charAt(0).toUpperCase() + type.slice(1)}Msg`];
+            const data = state[type];
+            listEl.innerHTML = '';
+            noItemsEl.classList.toggle('hidden', data.length > 0);
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'rounded-2xl shadow-lg p-4 space-y-2';
+                card.style.backgroundColor = 'var(--bg-secondary)';
+                card.style.border = '1px solid var(--border-color)';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-sm" style="color: var(--text-secondary);">
+                        <span>${item.sourceLangName}</span>
+                        <span class="material-symbols-outlined">arrow_right_alt</span>
+                        <span>${item.targetLangName}</span>
+                    </div>
+                    <p class="font-semibold text-lg">${item.sourceText}</p>
+                    <p class="text-lg" style="color: var(--brand-primary);">${item.targetText}</p>
+                    <div class="flex justify-end pt-2 space-x-1 space-x-reverse">
+                         <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.targetText}" data-lang="${item.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                         <button class="action-btn copy-data-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.targetText}" title="نسخ الترجمة"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                         <button class="action-btn delete-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-index="${index}" data-type="${type}"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">delete</span></button>
+                    </div>`;
+                listEl.appendChild(card);
+            });
+        }
+
+        function renderEmailsList() {
+            const listEl = dom.emailsList;
+            const noItemsEl = dom.noEmailsMsg;
+            const data = state.savedEmails;
+            listEl.innerHTML = '';
+            noItemsEl.classList.toggle('hidden', data.length > 0);
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'rounded-2xl shadow-lg p-4 space-y-2';
+                card.style.backgroundColor = 'var(--bg-secondary)';
+                card.style.border = '1px solid var(--border-color)';
+                card.innerHTML = `
+                    <pre class="text-lg whitespace-pre-wrap font-sans" style="color: var(--text-primary);">${item.text}</pre>
+                    <div class="flex justify-end items-center pt-2 text-xs" style="color: var(--text-secondary);">
+                         <span class="flex-grow">${new Date(item.date).toLocaleString()}</span>
+                         <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.text}" data-lang="${item.lang}" title="الاستماع للإيميل"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                        <button class="action-btn copy-saved-email-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-index="${index}" title="نسخ الإيميل"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                        <button class="action-btn delete-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-index="${index}" data-type="savedEmails"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">delete</span></button>
+                    </div>`;
+                listEl.appendChild(card);
+            });
+        }
+        
+        function renderChatsList() {
+            const listEl = dom.chatsList;
+            const noItemsEl = dom.noChatsMsg;
+            const data = state.savedChats;
+            listEl.innerHTML = '';
+            noItemsEl.classList.toggle('hidden', data.length > 0);
+            data.forEach((item, index) => {
+                const firstUserMessage = item.conversation.find(msg => msg.role === 'user')?.parts[0].text || 'محادثة فارغة';
+                const card = document.createElement('div');
+                card.className = 'rounded-2xl shadow-lg p-4 space-y-2';
+                card.style.backgroundColor = 'var(--bg-secondary)';
+                card.style.border = '1px solid var(--border-color)';
+                card.innerHTML = `
+                     <div class="flex justify-between items-center text-sm" style="color: var(--text-secondary);">
+                        <span>محادثة ${item.language}</span>
+                        <span class="text-xs">${new Date(item.date).toLocaleString()}</span>
+                    </div>
+                    <p class="font-semibold text-lg truncate">${firstUserMessage}</p>
+                    <div class="flex justify-end pt-2">
+                        <button class="action-btn delete-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-index="${index}" data-type="savedChats"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">delete</span></button>
+                    </div>`;
+                listEl.appendChild(card);
+            });
+        }
+        
+        function switchDataTab(tabName) {
+            state.currentDataTab = tabName;
+            const lang = document.documentElement.lang;
+            [dom.favoritesListContainer, dom.historyListContainer, dom.emailsListContainer, dom.chatsListContainer].forEach(c => c.classList.add('hidden'));
+            [dom.favoritesTab, dom.historyTab, dom.emailsTab, dom.chatsTab].forEach(t => t.classList.remove('active'));
+
+            let container, tab, renderFunc, dataType;
+            
+            switch(tabName) {
+                case 'favorites':
+                    [container, tab, renderFunc, dataType] = [dom.favoritesListContainer, dom.favoritesTab, () => renderList('favorites'), 'favorites'];
+                    break;
+                case 'history':
+                    [container, tab, renderFunc, dataType] = [dom.historyListContainer, dom.historyTab, () => renderList('history'), 'history'];
+                    break;
+                case 'emails':
+                    [container, tab, renderFunc, dataType] = [dom.emailsListContainer, dom.emailsTab, renderEmailsList, 'savedEmails'];
+                    break;
+                case 'chats':
+                    [container, tab, renderFunc, dataType] = [dom.chatsListContainer, dom.chatsTab, renderChatsList, 'savedChats'];
+                    break;
+            }
+            
+            container.classList.remove('hidden');
+            tab.classList.add('active');
+            renderFunc();
+            dom.dataViewTitle.textContent = uiStrings[lang][`${tabName}_title`];
+            dom.clearAllBtn.classList.toggle('hidden', state[dataType].length === 0);
+        }
+
+        function clearAll() {
+            const typeMap = { 'favorites': 'favorites', 'history': 'history', 'emails': 'savedEmails', 'chats': 'savedChats' };
+            const type = typeMap[state.currentDataTab];
+            if (!type) return;
+
+            state[type] = [];
+            saveData(type);
+            
+            switch(state.currentDataTab) {
+                case 'favorites':
+                case 'history':
+                    renderList(type);
+                    break;
+                case 'emails':
+                    renderEmailsList();
+                    break;
+                case 'chats':
+                    renderChatsList();
+                    break;
+            }
+        }
+        
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+        }
+        
+        function populateSettingsSelects() {
+            const selects = [dom.defaultTranslateLangSelect, dom.defaultEmailLangSelect, dom.defaultLearnLangSelect];
+            const currentUILang = document.documentElement.lang || 'de';
+
+            let optionsHTML = '';
+            for (const [code, names] of Object.entries(languages)) {
+                if (code === 'auto') continue; 
+                optionsHTML += `<option value="${code}">${names[currentUILang]}</option>`;
+            }
+
+            selects.forEach(select => {
+                select.innerHTML = optionsHTML;
+            });
+        }
+
+        function applyLanguage(lang) {
+            const strings = uiStrings[lang] || uiStrings.de;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = ['ar', 'he', 'fa', 'ur'].includes(lang) ? 'rtl' : 'ltr';
+            document.querySelectorAll('[data-key]').forEach(el => { if(strings[el.dataset.key]) el.textContent = strings[el.dataset.key]; });
+            document.querySelectorAll('[data-key-placeholder]').forEach(el => { if(strings[el.dataset.keyPlaceholder]) el.placeholder = strings[el.dataset.keyPlaceholder]; });
+            document.querySelectorAll('[data-key-title]').forEach(el => { if(strings[el.dataset.keyTitle]) el.title = strings[el.dataset.keyTitle]; });
+            
+            dom.searchLangInput.placeholder = strings.search_placeholder;
+            dom.sourceText.placeholder = strings.source_placeholder;
+            dom.chatInput.placeholder = strings.chat_placeholder;
+
+            state.sourceLangName = languages[state.sourceLang][lang];
+            state.targetLangName = languages[state.targetLang][lang];
+            const learnLangName = languages[state.learnLang][lang];
+            const emailLangName = languages[state.emailLang][lang];
+
+
+            updateLanguageButtons();
+            dom.emailLangDisplay.textContent = emailLangName;
+            dom.learnLangDisplay.textContent = learnLangName;
+            renderChatHistory();
+
+            populateSettingsSelects();
+            dom.defaultTranslateLangSelect.value = state.targetLang;
+            dom.defaultEmailLangSelect.value = state.emailLang;
+            dom.defaultLearnLangSelect.value = state.learnLang;
+
+
+            localStorage.setItem('language', lang);
+            dom.languageSelect.value = lang;
+        }
+
+        function applyThemeColors(themeKey) {
+            const theme = themes[themeKey];
+            if (!theme) return;
+
+            const root = document.documentElement;
+            root.style.setProperty('--brand-primary', theme.primary);
+            root.style.setProperty('--brand-secondary', theme.secondary);
+
+            root.style.setProperty('--olive-700', theme.bg);
+            root.style.setProperty('--olive-600', theme.primary);
+            root.style.setProperty('--olive-500', theme.secondary);
+            root.style.setProperty('--olive-400', theme.secondary); 
+            root.style.setProperty('--olive-300', theme.light); 
+            root.style.setProperty('--olive-200', theme.light);
+            
+            dom.currentColorSwatch.style.backgroundColor = theme.secondary;
+
+            document.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
+            const newSelected = document.querySelector(`.color-swatch[data-theme="${themeKey}"]`);
+            if (newSelected) {
+                newSelected.classList.add('selected');
+            }
+            
+            localStorage.setItem('app_theme', themeKey);
+        }
+
+        // --- Live Chat Functions ---
+        function setLiveChatState(status) { // 'listening', 'thinking', 'speaking', 'paused', 'idle'
+            dom.liveChatVisualizer.className = 'flex items-center justify-center h-24 w-full'; // Reset
+            dom.liveChatVisualizer.classList.add(status);
+            const lang = document.documentElement.lang;
+            const statusMap = {
+                listening: uiStrings[lang].live_listening,
+                thinking: uiStrings[lang].live_thinking,
+                speaking: '',
+                paused: uiStrings[lang].live_paused,
+                idle: ''
+            };
+            dom.liveChatStatus.textContent = statusMap[status] || '';
+        }
+
+        function openLiveChat() {
+            state.isLiveChatActive = true;
+            state.isLiveChatPaused = false;
+            liveChatHistory = [];
+            dom.liveChatTranscript.innerHTML = '';
+            dom.pauseIcon.textContent = 'pause';
+            dom.liveChatModal.classList.remove('hidden');
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            setupLiveSpeechRecognition();
+            liveSpeechRecognition.start();
+        }
+
+        function closeLiveChat() {
+            state.isLiveChatActive = false;
+            dom.liveChatModal.classList.add('hidden');
+            if (liveSpeechRecognition) {
+                liveSpeechRecognition.abort(); // Use abort for immediate stop
+            }
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel(); // Stop any ongoing speech
+            }
+            setLiveChatState('idle');
+        }
+
+        function toggleLiveChatPause() {
+            state.isLiveChatPaused = !state.isLiveChatPaused;
+            if (state.isLiveChatPaused) {
+                dom.pauseIcon.textContent = 'play_arrow';
+                if (liveSpeechRecognition) liveSpeechRecognition.abort();
+                if (speechSynthesis.speaking) speechSynthesis.pause();
+                setLiveChatState('paused');
+            } else {
+                dom.pauseIcon.textContent = 'pause';
+                if (speechSynthesis.paused) {
+                    speechSynthesis.resume();
+                    setLiveChatState('speaking');
+                } else {
+                    if (liveSpeechRecognition) liveSpeechRecognition.start();
+                }
+            }
+        }
+
+        function setupLiveSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+
+            liveSpeechRecognition = new SpeechRecognition();
+            liveSpeechRecognition.continuous = true;
+            liveSpeechRecognition.interimResults = true;
+            liveSpeechRecognition.lang = document.documentElement.lang;
+
+            liveSpeechRecognition.onstart = () => {
+                if (!state.isLiveChatPaused) setLiveChatState('listening');
+            };
+
+            liveSpeechRecognition.onresult = (event) => {
+                let final_transcript_chunk = '';
+                let interim_transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        final_transcript_chunk += event.results[i][0].transcript;
+                    } else {
+                        interim_transcript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // التحديث الرئيسي هنا: إيقاف الميكروفون عند الحصول على نتيجة نهائية
+                if (final_transcript_chunk.trim()) {
+                    liveFinalTranscript = final_transcript_chunk;
+                    liveSpeechRecognition.stop(); // إيقاف الاستماع
+                }
+
+                updateLiveTranscript(liveFinalTranscript, interim_transcript);
+            };
+
+            liveSpeechRecognition.onerror = (event) => {
+                console.error('Live Speech Recognition Error:', event.error);
+                if(event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') {
+                    if(state.isLiveChatActive && !state.isLiveChatPaused) {
+                       // لا تعيد التشغيل تلقائياً هنا لتجنب الحلقات اللانهائية
+                    }
+                }
+            };
+            
+            // التحديث الرئيسي هنا: منطق onend الجديد
+            liveSpeechRecognition.onend = () => {
+                // بعد أن يتوقف الميكروفون تمامًا
+                if (state.isLiveChatActive && !state.isLiveChatPaused) {
+                    if (liveFinalTranscript.trim()) {
+                        // إذا كان هناك نص، أرسله للوكيل الذكي
+                        getLiveAIResponse(liveFinalTranscript);
+                        liveFinalTranscript = ''; // مسح النص بعد إرساله
+                    } else {
+                        // إذا لم يكن هناك نص، أعد تشغيل الاستماع
+                        liveSpeechRecognition.start();
+                    }
+                }
+            };
+        }
+
+        function updateLiveTranscript(finalTxt, interimTxt) {
+            const historyHtml = liveChatHistory.map(entry => {
+                if (entry.startsWith('AI:')) {
+                    return `<div class="chat-bubble ai-bubble">${entry.substring(3).trim()}</div>`;
+                } else {
+                    return `<div class="chat-bubble user-bubble">${entry.substring(4).trim()}</div>`;
+                }
+            }).join('');
+
+            const currentTranscriptHtml = `<p class="text-white text-center h-8">${finalTxt}<span class="text-white/50">${interimTxt}</span></p>`;
+
+            dom.liveChatTranscript.innerHTML = historyHtml + currentTranscriptHtml;
+            dom.liveChatTranscript.scrollTop = dom.liveChatTranscript.scrollHeight;
+        }
+
+        async function getLiveAIResponse(userText) {
+            if (!userText.trim()) return;
+            setLiveChatState('thinking');
+            liveChatHistory.push(`You: ${userText}`);
+            
+            const currentUILang = document.documentElement.lang;
+            const targetLangName = languages[state.learnLang][currentUILang];
+
+            const systemInstruction = `You are 'Harfy', an expert, professional, and engaging language professor conducting a live voice conversation. The user is learning ${targetLangName}, and the conversation is in ${currentUILang}.
+
+**Your Core Directives:**
+1.  **Be Concise & Professional:** Answer the user's question directly and professionally, without repetition or unnecessary filler. Get straight to the point.
+2.  **Lead the Conversation:** You must lead the conversation. After each explanation, you **must** ask a relevant, open-ended follow-up question to encourage the user to speak and practice. Make it a real dialogue.
+3.  **Language Discipline:** All your responses must be strictly in the user's interface language (${currentUILang}).
+4.  **First Interaction:** If this is the first message, introduce yourself briefly and ask an engaging question like, "Welcome! I'm Harfy. What about the ${targetLangName} language are you most curious about today?".`;
+            
+            const historyForApi = liveChatHistory.map(entry => {
+                if (entry.startsWith('AI:')) {
+                    return { role: "model", parts: [{ text: entry.substring(3).trim() }] };
+                } else { 
+                    return { role: "user", parts: [{ text: entry.substring(4).trim() }] };
+                }
+            });
+
+            const payload = {
+                contents: historyForApi,
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            try {
+                const response = await fetch(translateApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (aiText) {
+                    liveChatHistory.push(`AI: ${aiText}`);
+                    updateLiveTranscript('', '');
+                    speakLiveAIResponse(aiText);
+                } else {
+                    speakLiveAIResponse("Sorry, I didn't get that.");
+                }
+            } catch (error) {
+                console.error("Live AI Response Error:", error);
+                speakLiveAIResponse("Sorry, I'm having trouble connecting.");
+            }
+        }
+
+        function speakLiveAIResponse(text) {
+            if (state.isLiveChatPaused) return;
+            setLiveChatState('speaking');
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = document.documentElement.lang;
+            const desiredVoice = speechVoices.find(voice => 
+                voice.lang.startsWith(utterance.lang) && 
+                (state.ttsVoice === 'male' ? /male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name) : !/male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name))
+            );
+            utterance.voice = desiredVoice || speechVoices.find(voice => voice.lang.startsWith(utterance.lang));
+            
+            utterance.onend = () => {
+                // بعد أن ينتهي الوكيل من الكلام، أعد تشغيل الميكروفون
+                if (state.isLiveChatActive && !state.isLiveChatPaused) {
+                    liveSpeechRecognition.start();
+                } else {
+                    setLiveChatState('idle');
+                }
+            };
+            
+            utterance.onerror = (e) => {
+                console.error("Live TTS error:", e.error);
+                // إذا حدث خطأ في النطق، أعد تشغيل الميكروفون
+                 if (state.isLiveChatActive && !state.isLiveChatPaused) {
+                    liveSpeechRecognition.start();
+                }
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // --- PWA Functions ---
+        function setupPWA() {
+            // 1. Create and link manifest.json dynamically
+            const manifest = {
+                "name": "Harfy",
+                "short_name": "Harfy",
+                "description": "تطبيق حرفي للترجمة الاحترافية وتعلم اللغات.",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#0f172a",
+                "theme_color": "#5f6e45",
+                "icons": [
+                    {
+                        "src": "images/icon-192x192.png",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "images/icon-512x512.png",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
+            
+            // Set the icon for the install banner preview
+            dom.pwa.iconPreview.src = manifest.icons[0].src;
+
+            // 2. Register Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('Service Worker registered successfully:', registration))
+                    .catch(error => console.error('Service Worker registration failed:', error));
+            }
+
+            // 3. Handle Install Prompt
+            window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                deferredInstallPrompt = event;
+                dom.pwa.installBanner.classList.add('visible');
+            });
+
+            dom.pwa.installBtn.addEventListener('click', () => {
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    deferredInstallPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredInstallPrompt = null;
+                        dom.pwa.installBanner.classList.remove('visible');
+                    });
+                }
+            });
+
+            dom.pwa.closeBtn.addEventListener('click', () => {
+                dom.pwa.installBanner.classList.remove('visible');
+            });
+        }
+        
+        function setupEventListeners() {
+            dom.translateBtn.addEventListener('click', async () => {
+                dom.synonymsCard.classList.add('hidden');
+                dom.examplesCard.classList.add('hidden');
+                const text = dom.sourceText.value.trim();
+                if (!text) return;
+
+                const result = await translateText(text, state.sourceLangName, state.targetLangName);
+
+                dom.targetText.textContent = result.text;
+
+                if (result.success) {
+                    dom.outputActions.classList.remove('hidden');
+                    
+                    const sourceLangCode = result.detectedLang ? result.detectedLang.code : state.sourceLang;
+                    const sourceLangName = result.detectedLang ? result.detectedLang.name : state.sourceLangName;
+
+                    state.currentTranslation = {
+                        sourceText: text, targetText: result.text,
+                        sourceLang: sourceLangCode, sourceLangName: sourceLangName,
+                        targetLang: state.targetLang, targetLangName: state.targetLangName
+                    };
+                    updateFavoriteIcon();
+                    addToHistory(state.currentTranslation);
+
+                    const isSingleWord = !text.includes(' ') && text.length > 0;
+                    if (isSingleWord) {
+                        fetchAndRenderSynonyms(result.text, sourceLangName, state.targetLangName);
+                        fetchAndRenderExamples(result.text, sourceLangName, state.targetLangName);
+                    }
+                    
+                    if (result.detectedLang) {
+                        showFeedback('custom', `Erkannt: ${result.detectedLang.name}`);
+                    }
+
+                } else {
+                    dom.outputActions.classList.add('hidden');
+                    state.currentTranslation = null;
+                }
+            });
+            
+            dom.newTranslationBtn.addEventListener('click', () => {
+                dom.sourceText.value = '';
+                dom.targetText.textContent = '';
+                dom.outputActions.classList.add('hidden');
+                state.currentTranslation = null;
+                dom.synonymsCard.classList.add('hidden');
+                dom.examplesCard.classList.add('hidden');
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+            });
+
+            dom.sourceLangBtn.addEventListener('click', () => openLanguageModal('source'));
+            dom.targetLangBtn.addEventListener('click', () => openLanguageModal('target'));
+            dom.closeModalBtn.addEventListener('click', closeLanguageModal);
+            
+            dom.swapLangBtn.addEventListener('click', () => {
+                const currentUILang = document.documentElement.lang || 'de';
+                if (state.sourceLang === 'auto') {
+                    showFeedback('custom', uiStrings[currentUILang].auto_detect_swap_error || 'Die automatische Spracherkennung kann nicht getauscht werden.');
+                    return;
+                }
+                [state.sourceLang, state.targetLang] = [state.targetLang, state.sourceLang];
+                [state.sourceLangName, state.targetLangName] = [languages[state.sourceLang][currentUILang], languages[state.targetLang][currentUILang]];
+                [dom.sourceText.value, dom.targetText.textContent] = [dom.targetText.textContent, dom.sourceText.value];
+                updateLanguageButtons();
+
+                if (state.currentTranslation) {
+                    [state.currentTranslation.sourceText, state.currentTranslation.targetText] = [state.currentTranslation.targetText, state.currentTranslation.sourceText];
+                    [state.currentTranslation.sourceLang, state.currentTranslation.targetLang] = [state.currentTranslation.targetLang, state.currentTranslation.sourceLang];
+                    [state.currentTranslation.sourceLangName, state.currentTranslation.targetLangName] = [state.currentTranslation.targetLangName, state.currentTranslation.sourceLangName];
+                    updateFavoriteIcon();
+                }
+                dom.outputActions.classList.toggle('hidden', !dom.targetText.textContent.trim());
+                dom.synonymsCard.classList.add('hidden');
+                dom.examplesCard.classList.add('hidden');
+            });
+
+            dom.searchLangInput.addEventListener('input', (e) => populateLanguageList(e.target.value));
+            
+            dom.copyBtn.addEventListener('click', () => {
+                copyToClipboard(dom.targetText.textContent);
+            });
+
+            dom.ttsBtn.addEventListener('click', (e) => {
+                 playAudioWithWebSpeech(dom.targetText.textContent, state.targetLang, e.currentTarget);
+            });
+
+            dom.favoriteBtn.addEventListener('click', toggleFavorite);
+            
+            function handleItemCardActions(e) {
+                const button = e.target.closest('.action-btn');
+                if (!button) return;
+                if (button.classList.contains('copy-item-btn')) {
+                    copyToClipboard(button.dataset.text);
+                }
+                
+                if (button.classList.contains('tts-item-btn')) {
+                    playAudioWithWebSpeech(button.dataset.text, button.dataset.lang, button);
+                }
+
+                if (button.classList.contains('favorite-item-btn')) {
+                    const favItem = {
+                        sourceText: button.dataset.source, targetText: button.dataset.target,
+                        sourceLang: state.sourceLang, sourceLangName: state.sourceLangName,
+                        targetLang: state.targetLang, targetLangName: state.targetLangName,
+                    };
+                    const index = state.favorites.findIndex(f => f.sourceText === favItem.sourceText && f.targetText === favItem.targetText);
+                    const icon = button.querySelector('.material-symbols-outlined');
+
+                    if (index === -1) {
+                        state.favorites.unshift(favItem);
+                        showFeedback('save');
+                        icon.textContent = 'star';
+                        icon.style.fontVariationSettings = `'FILL' 1`;
+                        icon.style.color = '#facc15';
+                    } else {
+                        state.favorites.splice(index, 1);
+                        showFeedback('custom', 'تم الحذف من المفضلة');
+                        icon.textContent = 'star_outline';
+                        icon.style.fontVariationSettings = `'FILL' 0`;
+                        icon.style.color = 'var(--text-secondary)';
+                    }
+                    saveData('favorites');
+                }
+            }
+            dom.synonymsList.addEventListener('click', handleItemCardActions);
+            dom.examplesList.addEventListener('click', handleItemCardActions);
+            
+            dom.generateEmailBtn.addEventListener('click', async () => {
+                const details = dom.emailDetails.value.trim();
+                if (!details) return;
+                const langName = languages[state.emailLang][document.documentElement.lang];
+                const result = await generateEmail(details, langName);
+                dom.emailOutput.textContent = result;
+                if (!result.startsWith('خطأ:')) {
+                    dom.emailOutputActions.classList.remove('hidden');
+                } else {
+                    dom.emailOutputActions.classList.add('hidden');
+                }
+            });
+
+            dom.copyEmailBtn.addEventListener('click', () => {
+                copyToClipboard(dom.emailOutput.textContent);
+            });
+            
+            dom.rewriteEmailBtn.addEventListener('click', async () => {
+                const currentEmail = dom.emailOutput.textContent.trim();
+                if (!currentEmail || currentEmail.startsWith('خطأ:')) return;
+                const langName = languages[state.emailLang][document.documentElement.lang];
+                const result = await rewriteEmail(currentEmail, langName);
+                dom.emailOutput.textContent = result;
+            });
+
+            dom.saveEmailBtn.addEventListener('click', saveEmail);
+
+            dom.ttsEmailBtn.addEventListener('click', (e) => {
+                 playAudioWithWebSpeech(dom.emailOutput.textContent, state.emailLang, e.currentTarget);
+            });
+            
+            dom.sendChatBtn.addEventListener('click', async () => {
+                const userMessage = dom.chatInput.value.trim();
+                if(!userMessage) return;
+
+                state.chatHistory.push({ role: 'user', parts: [{ text: userMessage }] });
+                renderChatHistory();
+                dom.chatInput.value = '';
+                const langName = languages[state.learnLang][document.documentElement.lang];
+                const aiResponse = await getTutorResponse(state.chatHistory, langName);
+                state.chatHistory.push({ role: 'model', parts: [{ text: aiResponse }] });
+                renderChatHistory();
+            });
+            
+            dom.newChatBtn.addEventListener('click', () => {
+                if (state.chatHistory.length > 0) {
+                    const chatToSave = {
+                        date: new Date().toISOString(),
+                        language: languages[state.learnLang][document.documentElement.lang],
+                        conversation: [...state.chatHistory]
+                    };
+                    state.savedChats.unshift(chatToSave);
+                    saveData('savedChats');
+                    showFeedback('save', 'Chat saved');
+                }
+                state.chatHistory = [];
+                renderChatHistory();
+            });
+
+            dom.chatInput.addEventListener('input', () => {
+                const input = dom.chatInput;
+                if (getComputedStyle(input).direction === 'rtl') {
+                    input.scrollLeft = -input.scrollWidth;
+                } else {
+                    input.scrollLeft = input.scrollWidth;
+                }
+            });
+
+            dom.chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    dom.sendChatBtn.click();
+                }
+            });
+            
+            dom.chatHistory.addEventListener('click', (e) => {
+                const target = e.target;
+
+                if (target.classList.contains('exercise-option')) {
+                    const button = target;
+                    const parent = button.parentElement;
+                    const isCorrect = button.dataset.correct === 'true';
+
+                    if (isCorrect) {
+                        button.classList.add('correct');
+                    } else {
+                        button.classList.add('incorrect');
+                        const correctButton = parent.querySelector('[data-correct="true"]');
+                        if (correctButton) {
+                            correctButton.classList.add('correct');
+                        }
+                    }
+                    
+                    parent.querySelectorAll('.exercise-option').forEach(btn => {
+                        btn.disabled = true;
+                    });
+                    return; 
+                }
+                
+                const actionButton = target.closest('.chat-action-btn');
+                if (actionButton) {
+                    const messageCard = actionButton.closest('.ai-chat-card');
+                    const contentDiv = messageCard.querySelector('.chat-content');
+                    if (!contentDiv) return;
+
+                    const textToProcess = contentDiv.innerText || contentDiv.textContent;
+
+                    if (actionButton.classList.contains('chat-copy-btn')) {
+                        copyToClipboard(textToProcess);
+                    }
+
+                    if (actionButton.classList.contains('chat-tts-btn')) {
+                        playAudioWithWebSpeech(textToProcess, state.learnLang, actionButton);
+                    }
+                }
+            });
+            
+            dom.favoritesTab.addEventListener('click', () => switchDataTab('favorites'));
+            dom.historyTab.addEventListener('click', () => switchDataTab('history'));
+            dom.emailsTab.addEventListener('click', () => switchDataTab('emails'));
+            dom.chatsTab.addEventListener('click', () => switchDataTab('chats'));
+            dom.clearAllBtn.addEventListener('click', clearAll);
+
+            dom.views.data.addEventListener('click', (e) => {
+                const btn = e.target.closest('.action-btn');
+                if (!btn) return;
+
+                if (btn.classList.contains('delete-item-btn')) {
+                    const { index, type } = btn.dataset;
+                    state[type].splice(parseInt(index), 1);
+                    saveData(type);
+                    
+                    if (type === 'savedEmails') renderEmailsList();
+                    else if (type === 'savedChats') renderChatsList();
+                    else renderList(type);
+                }
+                
+                if (btn.classList.contains('copy-saved-email-btn')) {
+                    const { index } = btn.dataset;
+                    copyToClipboard(state.savedEmails[parseInt(index)].text);
+                }
+
+                if (btn.classList.contains('tts-item-btn')) {
+                   playAudioWithWebSpeech(btn.dataset.text, btn.dataset.lang, btn);
+                }
+                
+                if (btn.classList.contains('copy-data-item-btn')) {
+                    copyToClipboard(btn.dataset.text);
+                }
+            });
+            
+            dom.navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchView(btn.dataset.view);
+                });
+            });
+            
+            dom.darkModeToggle.addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+            dom.languageSelect.addEventListener('change', (e) => applyLanguage(e.target.value));
+            dom.voiceSelect.addEventListener('change', (e) => {
+                state.ttsVoice = e.target.value;
+                localStorage.setItem('translator_voice', state.ttsVoice);
+            });
+
+            dom.cameraBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let targetId = '';
+                    if (btn.id === 'camera-btn-translate') targetId = 'source-text';
+                    else if (btn.id === 'camera-btn-email') targetId = 'email-details';
+                    else if (btn.id === 'camera-btn-learn') targetId = 'chat-input';
+                    
+                    if (targetId) openFileOptionsModal(targetId);
+                });
+            });
+
+            dom.takePhotoBtn.addEventListener('click', () => {
+                closeFileOptionsModal();
+                setTimeout(() => {
+                    openCameraModal(activeInputTarget.id);
+                }, 350);
+            });
+
+            dom.chooseGalleryBtn.addEventListener('click', () => {
+                closeFileOptionsModal();
+                dom.galleryInput.click();
+            });
+
+            dom.chooseFileBtn.addEventListener('click', () => {
+                dom.fileInput.accept = ".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv";
+                closeFileOptionsModal();
+                dom.fileInput.click();
+            });
+
+            dom.fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                processFileAndSetText(file);
+                event.target.value = ''; 
+            });
+
+
+            dom.closeCameraBtn.addEventListener('click', closeCameraModal);
+
+            dom.captureBtn.addEventListener('click', () => {
+                const video = dom.cameraVideo;
+                const canvas = dom.cameraCanvas;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const base64Data = canvas.toDataURL('image/jpeg').split(',')[1];
+                
+                closeCameraModal();
+                processImageAndSetText(base64Data);
+            });
+
+            dom.galleryBtn.addEventListener('click', () => {
+                if (activeInputTarget) {
+                    dom.galleryInput.click();
+                }
+            });
+
+            dom.galleryInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Data = e.target.result.split(',')[1];
+                    closeCameraModal();
+                    processImageAndSetText(base64Data);
+                };
+                reader.readAsDataURL(file);
+                event.target.value = ''; 
+            });
+            
+             document.getElementById('mic-btn-translate').addEventListener('click', (e) => toggleRecording('source-text', state.sourceLang, e.currentTarget));
+             document.getElementById('mic-btn-email').addEventListener('click', (e) => toggleRecording('email-details', state.emailLang, e.currentTarget));
+             document.getElementById('mic-btn-learn').addEventListener('click', (e) => toggleRecording('chat-input', state.learnLang, e.currentTarget));
+
+            dom.grantPermissionBtn.addEventListener('click', handlePermissionGrant);
+            dom.denyPermissionBtn.addEventListener('click', () => {
+                if(currentPermissionRequest) {
+                    localStorage.setItem(`permissions_requested_${currentPermissionRequest}`, 'true');
+                }
+                dom.permissionsModal.classList.add('hidden');
+                dom.permissionsModal.classList.remove('flex');
+            });
+
+            dom.themeCardHeader.addEventListener('click', () => {
+                dom.colorOptions.classList.toggle('hidden');
+                dom.themeArrowIcon.classList.toggle('rotated');
+            });
+
+            dom.colorOptions.addEventListener('click', (e) => {
+                if (e.target.classList.contains('color-swatch')) {
+                    const themeKey = e.target.dataset.theme;
+                    applyThemeColors(themeKey);
+                }
+            });
+
+            dom.fileOptionsModal.addEventListener('click', closeFileOptionsModal);
+            
+            dom.defaultTranslateLangSelect.addEventListener('change', (e) => {
+                const newLang = e.target.value;
+                localStorage.setItem('default_translate_lang', newLang);
+                state.targetLang = newLang;
+                const currentUILang = document.documentElement.lang || 'de';
+                state.targetLangName = languages[newLang][currentUILang];
+                updateLanguageButtons();
+            });
+            
+            dom.defaultLearnLangSelect.addEventListener('change', (e) => {
+                const newLang = e.target.value;
+                localStorage.setItem('default_learn_lang', newLang);
+                state.learnLang = newLang;
+                applyLanguage(document.documentElement.lang);
+            });
+            
+            dom.defaultEmailLangSelect.addEventListener('change', (e) => {
+                const newLang = e.target.value;
+                localStorage.setItem('default_email_lang', newLang);
+                state.emailLang = newLang;
+                applyLanguage(document.documentElement.lang);
+            });
+
+
+            dom.liveChatFab.addEventListener('click', openLiveChat);
+            dom.closeLiveChatBtn.addEventListener('click', closeLiveChat);
+            dom.pauseLiveChatBtn.addEventListener('click', toggleLiveChatPause);
+        }
+        
+        function init() {
+            const appName = "Harfy";
+            appName.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                if (char === ' ') {
+                    span.className = 'space';
+                }
+                span.style.setProperty('--i', index);
+                dom.splashTitleContainer.appendChild(span);
+            });
+            
+            for(let i = 0; i < 12; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.height = '8px';
+                dom.liveChatVisualizer.appendChild(bar);
+            }
+
+            const splashScreen = document.getElementById('splash-screen');
+            const appContainer = document.getElementById('app-container');
+            const navBar = document.getElementById('nav-bar');
+            
+            // زيادة مدة شاشة البداية إلى 4 ثواني
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    appContainer.style.opacity = '1';
+                    navBar.style.opacity = '1';
+                    checkAndRequestPermission();
+                }, 500);
+            }, 4000); 
+            
+            loadData();
+            const savedThemeUI = localStorage.getItem('theme') || 'light';
+            const savedLanguage = localStorage.getItem('language') || 'de';
+            
+            applyLanguage(savedLanguage);
+            applyTheme(savedThemeUI);
+
+            Object.keys(themes).forEach(key => {
+                const theme = themes[key];
+                const swatch = document.createElement('button');
+                swatch.className = 'color-swatch';
+                swatch.dataset.theme = key;
+                swatch.title = theme.name;
+                swatch.style.backgroundColor = theme.secondary;
+                dom.colorOptions.appendChild(swatch);
+            });
+
+            const savedTheme = localStorage.getItem('app_theme') || 'olive';
+            applyThemeColors(savedTheme);
+
+            dom.voiceSelect.value = state.ttsVoice;
+            
+            loadVoices();
+            setupSpeechRecognition();
+
+            setupEventListeners();
+            switchView('translate-view');
+            setupPWA();
+        }
+
+        init();
+    </script>
+</body>
+</html>
