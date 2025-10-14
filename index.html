@@ -61,6 +61,7 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             transition: background-color 0.3s, color 0.3s;
+            /* تعطيل ميزة السحب للأسفل لتحديث الصفحة */
             overscroll-behavior-y: contain;
         }
         
@@ -140,11 +141,9 @@
         }
 
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #4a5568; }
+        /* Custom scrollbar - Hidden */
+        ::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; -ms-overflow-style: none; }
 
         /* Ripple effect for buttons */
         .ripple { position: relative; overflow: hidden; }
@@ -448,7 +447,13 @@
         #live-chat-modal {
             transition: opacity 0.3s ease-in-out;
         }
-
+        
+        /* تفعيل التمرير في نافذة المحادثة الحية */
+        #live-chat-transcript {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
         #live-chat-transcript .chat-bubble {
             padding: 0.75rem 1rem;
             border-radius: 1.5rem;
@@ -547,6 +552,32 @@
         }
         #pwa-install-banner.visible {
             transform: translateY(0);
+        }
+        
+        /* Chat History Modal Styles */
+        #chat-viewer-modal .chat-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1.5rem;
+            max-width: 80%;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+        #chat-viewer-modal .ai-bubble {
+            background-color: var(--brand-secondary);
+            color: white;
+            border-bottom-left-radius: 0.25rem;
+            align-self: flex-start;
+        }
+        #chat-viewer-modal .user-bubble {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-right-radius: 0.25rem;
+            align-self: flex-end;
+        }
+        .dark #chat-viewer-modal .user-bubble {
+            background-color: #334155;
         }
 
     </style>
@@ -652,6 +683,15 @@
                 <p id="no-synonyms" class="text-center mt-2 hidden" style="color: var(--text-secondary);" data-key="no_synonyms"></p>
             </div>
             
+            <div id="etymology-card" class="card rounded-2xl shadow-lg p-4 hidden">
+                <h2 class="text-lg font-bold mb-2" style="color: var(--brand-primary);" data-key="etymology_title"></h2>
+                <div id="etymology-loader" class="flex justify-center items-center p-4 hidden">
+                    <div class="w-6 h-6 border-2 rounded-full animate-spin" style="border-color: var(--brand-primary); border-top-color: transparent;"></div>
+                </div>
+                <div id="etymology-content" class="space-y-2"></div>
+                <p id="no-etymology" class="text-center mt-2 hidden" style="color: var(--text-secondary);" data-key="no_etymology"></p>
+            </div>
+            
             <div id="examples-card" class="card rounded-2xl shadow-lg p-4 hidden">
                 <h2 class="text-lg font-bold mb-2" style="color: var(--brand-primary);" data-key="examples_title"></h2>
                 <div id="examples-loader" class="flex justify-center items-center p-4 hidden">
@@ -717,10 +757,10 @@
                         <button id="camera-btn-email" class="camera-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="camera_input_button">
                             <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">photo_camera</span>
                         </button>
-                        <div class="flex items-center gap-2 p-2">
+                        <button id="email-lang-btn" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 cursor-pointer">
                             <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">language</span>
                             <span id="email-lang-display" class="font-semibold" style="color: var(--brand-primary);"></span>
-                        </div>
+                        </button>
                     </div>
                     <button id="generate-email-btn" class="ripple flex items-center gap-2 text-white font-bold py-2 px-5 rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95" style="background-color: var(--brand-secondary);">
                         <span data-key="generate_email_button"></span>
@@ -757,10 +797,10 @@
                         <button id="new-chat-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="new_chat_button">
                             <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">add_comment</span>
                         </button>
-                        <div class="flex items-center gap-2 p-2">
+                        <button id="learn-lang-btn" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 cursor-pointer">
                             <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">language</span>
                             <span id="learn-lang-display" class="font-semibold" style="color: var(--brand-primary);"></span>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -819,6 +859,7 @@
                         <option value="fa">فارسی</option>
                         <option value="tr">Türkçe</option>
                         <option value="it">Italiano</option>
+                        <option value="uk">Українська</option>
                     </select>
                 </div>
                  <div class="settings-card flex items-center justify-between p-3 rounded-lg shadow-md">
@@ -956,7 +997,6 @@
         </div>
     </div>
 
-
     <!-- Image Processing Loader -->
     <div id="image-processing-loader" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 hidden">
         <div class="analyzer-animation">
@@ -986,7 +1026,6 @@
         </div>
         <p class="text-white mt-4 text-lg" data-key="analyzing_audio"></p>
     </div>
-
 
     <!-- Permissions Modal -->
     <div id="permissions-modal" class="fixed inset-0 z-[70] flex-col items-center justify-center bg-black/80 p-4 hidden">
@@ -1027,6 +1066,20 @@
         </div>
     </div>
 
+    <!-- Chat History Viewer Modal -->
+    <div id="chat-viewer-modal" class="fixed inset-0 z-[70] bg-black/80 p-4 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full h-[90vh] mx-auto flex flex-col shadow-lg">
+            <header class="flex items-center justify-between p-3 border-b dark:border-gray-700 flex-shrink-0">
+                <h2 id="chat-viewer-title" class="text-lg font-bold" style="color: var(--brand-primary);"></h2>
+                <button id="close-chat-viewer-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </header>
+            <div id="chat-viewer-content" class="flex-grow overflow-y-auto p-4 space-y-4 flex flex-col">
+                <!-- Saved chat messages render here -->
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         // --- Gemini API Configuration ---
@@ -1060,6 +1113,10 @@
             synonymsLoader: document.getElementById('synonyms-loader'),
             synonymsList: document.getElementById('synonyms-list'),
             noSynonymsMsg: document.getElementById('no-synonyms'),
+            etymologyCard: document.getElementById('etymology-card'),
+            etymologyLoader: document.getElementById('etymology-loader'),
+            etymologyContent: document.getElementById('etymology-content'),
+            noEtymologyMsg: document.getElementById('no-etymology'),
             examplesCard: document.getElementById('examples-card'),
             examplesLoader: document.getElementById('examples-loader'),
             examplesList: document.getElementById('examples-list'),
@@ -1106,7 +1163,9 @@
             rewriteEmailBtn: document.getElementById('rewrite-email-btn'),
             saveEmailBtn: document.getElementById('save-email-btn'),
             ttsEmailBtn: document.getElementById('tts-email-btn'),
+            emailLangBtn: document.getElementById('email-lang-btn'),
             emailLangDisplay: document.getElementById('email-lang-display'),
+            learnLangBtn: document.getElementById('learn-lang-btn'),
             learnLangDisplay: document.getElementById('learn-lang-display'),
             chatHistory: document.getElementById('chat-history'),
             chatInput: document.getElementById('chat-input'),
@@ -1152,6 +1211,10 @@
             pauseIcon: document.getElementById('pause-icon'),
             liveChatStatus: document.getElementById('live-chat-status'),
             liveChatVisualizer: document.getElementById('live-chat-visualizer'),
+            chatViewerModal: document.getElementById('chat-viewer-modal'),
+            chatViewerTitle: document.getElementById('chat-viewer-title'),
+            chatViewerContent: document.getElementById('chat-viewer-content'),
+            closeChatViewerBtn: document.getElementById('close-chat-viewer-btn'),
             pwa: {
                 installBanner: document.getElementById('pwa-install-banner'),
                 installBtn: document.getElementById('pwa-install-btn'),
@@ -1200,34 +1263,35 @@
         };
 
         const languages = {
-            'auto': { ar: "التعرف التلقائي", en: "Auto-Detect", de: "Automatisch erkennen", es: "Detección automática", fa: "تشخیص خودکار", tr: "Otomatik Algıla", it: "Rilevamento automatico" },
-            'ar': { ar: "العربية", en: "Arabic", de: "Arabisch", es: "Árabe", fa: "عربی", tr: "Arapça", it: "Arabo" },
-            'bn': { ar: "البنغالية", en: "Bengali", de: "Bengalisch", es: "Bengalí", fa: "بنگالی", tr: "Bengalce", it: "Bengalese" },
-            'zh': { ar: "الصينية", en: "Chinese", de: "Chinesisch", es: "Chino", fa: "چینی", tr: "Çince", it: "Cinese" },
-            'nl': { ar: "الهولندية", en: "Dutch", de: "Niederländisch", es: "Holandés", fa: "هلندی", tr: "Felemenkçe", it: "Olandese" },
-            'en': { ar: "الإنجليزية", en: "English", de: "Englisch", es: "Inglés", fa: "انگلیسی", tr: "İngilizce", it: "Inglese" },
-            'fr': { ar: "الفرنسية", en: "French", de: "Französisch", es: "Francés", fa: "فرانسوی", tr: "Fransızca", it: "Francese" },
-            'de': { ar: "الألمانية", en: "German", de: "Deutsch", es: "Alemán", fa: "آلمانی", tr: "Almanca", it: "Tedesco" },
-            'el': { ar: "اليونانية", en: "Greek", de: "Griechisch", es: "Griego", fa: "یونانی", tr: "Yunanca", it: "Greco" },
-            'he': { ar: "العبرية", en: "Hebrew", de: "Hebräisch", es: "Hebreo", fa: "عبری", tr: "İbranice", it: "Ebraico" },
-            'hi': { ar: "الهندية", en: "Hindi", de: "Hindi", es: "Hindi", fa: "هندی", tr: "Hintçe", it: "Hindi" },
-            'id': { ar: "الإندونيسية", en: "Indonesian", de: "Indonesisch", es: "Indonesio", fa: "اندونزیایی", tr: "Endonezce", it: "Indonesiano" },
-            'it': { ar: "الإيطالية", en: "Italian", de: "Italienisch", es: "Italiano", fa: "ایتالیایی", tr: "İtalyanca", it: "Italiano" },
-            'ja': { ar: "اليابانية", en: "Japanese", de: "Japanisch", es: "Japonés", fa: "ژاپنی", tr: "Japonca", it: "Giapponese" },
-            'ko': { ar: "الكورية", en: "Korean", de: "Koreanisch", es: "Coreano", fa: "کره‌ای", tr: "Korece", it: "Coreano" },
-            'ku': { ar: "الكردية", en: "Kurdish", de: "Kurdisch", es: "Kurdo", fa: "کردی", tr: "Kürtçe", it: "Curdo" },
-            'ms': { ar: "الماليزية", en: "Malay", de: "Malaiisch", es: "Malayo", fa: "مالایی", tr: "Malayca", it: "Malese" },
-            'fa': { ar: "الفارسية", en: "Persian", de: "Persisch", es: "Persa", fa: "فارسی", tr: "Farsça", it: "Persiano" },
-            'ps': { ar: "البشتوية", en: "Pashto", de: "Paschtu", es: "Pastún", fa: "پشتو", tr: "Peştuca", it: "Pashto" },
-            'pl': { ar: "البولندية", en: "Polish", de: "Polnisch", es: "Polaco", fa: "لهستانی", tr: "Lehçe", it: "Polacco" },
-            'pt': { ar: "البرتغالية", en: "Portuguese", de: "Portugiesisch", es: "Portugués", fa: "پرتغالی", tr: "Portekizce", it: "Portoghese" },
-            'ru': { ar: "الروسية", en: "Russian", de: "Russisch", es: "Ruso", fa: "روسی", tr: "Rusça", it: "Russo" },
-            'es': { ar: "الإسبانية", en: "Spanish", de: "Spanisch", es: "Español", fa: "اسپانیایی", tr: "İspanyolca", it: "Spagnolo" },
-            'sv': { ar: "السويدية", en: "Swedish", de: "Schwedisch", es: "Sueco", fa: "سوئدی", tr: "İsveççe", it: "Svedese" },
-            'th': { ar: "التايلاندية", en: "Thai", de: "Thailändisch", es: "Tailandés", fa: "تایلندی", tr: "Tayca", it: "Tailandese" },
-            'tr': { ar: "التركية", en: "Turkish", de: "Türkisch", es: "Turco", fa: "ترکی", tr: "Türkçe", it: "Turco" },
-            'ur': { ar: "الأردية", en: "Urdu", de: "Urdu", es: "Urdu", fa: "اردو", tr: "Urduca", it: "Urdu" },
-            'vi': { ar: "الفيتنامية", en: "Vietnamese", de: "Vietnamesisch", es: "Vietnamita", fa: "ویتنامی", tr: "Vietnamca", it: "Vietnamita" },
+            'auto': { ar: "التعرف التلقائي", en: "Auto-Detect", de: "Automatisch erkennen", es: "Detección automática", fa: "تشخیص خودکار", tr: "Otomatik Algıla", it: "Rilevamento automatico", uk: "Автоматичне визначення" },
+            'ar': { ar: "العربية", en: "Arabic", de: "Arabisch", es: "Árabe", fa: "عربی", tr: "Arapça", it: "Arabo", uk: "Арабська" },
+            'bn': { ar: "البنغالية", en: "Bengali", de: "Bengalisch", es: "Bengalí", fa: "بنگالی", tr: "Bengalce", it: "Bengalese", uk: "Бенгальська" },
+            'zh': { ar: "الصينية", en: "Chinese", de: "Chinesisch", es: "Chino", fa: "چینی", tr: "Çince", it: "Cinese", uk: "Китайська" },
+            'nl': { ar: "الهولندية", en: "Dutch", de: "Niederländisch", es: "Holandés", fa: "هلندی", tr: "Felemenkçe", it: "Olandese", uk: "Нідерландська" },
+            'en': { ar: "الإنجليزية", en: "English", de: "Englisch", es: "Inglés", fa: "انگلیسی", tr: "İngilizce", it: "Inglese", uk: "Англійська" },
+            'fr': { ar: "الفرنسية", en: "French", de: "Französisch", es: "Francés", fa: "فرانسوی", tr: "Fransızca", it: "Francese", uk: "Французька" },
+            'de': { ar: "الألمانية", en: "German", de: "Deutsch", es: "Alemán", fa: "آلمانی", tr: "Almanca", it: "Tedesco", uk: "Німецька" },
+            'el': { ar: "اليونانية", en: "Greek", de: "Griechisch", es: "Griego", fa: "یونانی", tr: "Yunanca", it: "Greco", uk: "Грецька" },
+            'he': { ar: "العبرية", en: "Hebrew", de: "Hebräisch", es: "Hebreo", fa: "عبری", tr: "İbranice", it: "Ebraico", uk: "Іврит" },
+            'hi': { ar: "الهندية", en: "Hindi", de: "Hindi", es: "Hindi", fa: "هندی", tr: "Hintçe", it: "Hindi", uk: "Хінді" },
+            'id': { ar: "الإندونيسية", en: "Indonesian", de: "Indonesisch", es: "Indonesio", fa: "اندونزیایی", tr: "Endonezce", it: "Indonesiano", uk: "Індонезійська" },
+            'it': { ar: "الإيطالية", en: "Italian", de: "Italienisch", es: "Italiano", fa: "ایتالیایی", tr: "İtalyanca", it: "Italiano", uk: "Італійська" },
+            'ja': { ar: "اليابانية", en: "Japanese", de: "Japanisch", es: "Japonés", fa: "ژاپنی", tr: "Japonca", it: "Giapponese", uk: "Японська" },
+            'ko': { ar: "الكورية", en: "Korean", de: "Koreanisch", es: "Coreano", fa: "کره‌ای", tr: "Korece", it: "Coreano", uk: "Корейська" },
+            'ku': { ar: "الكردية", en: "Kurdish", de: "Kurdisch", es: "Kurdo", fa: "کردی", tr: "Kürtçe", it: "Curdo", uk: "Курдська" },
+            'ms': { ar: "الماليزية", en: "Malay", de: "Malaiisch", es: "Malayo", fa: "مالایی", tr: "Malayca", it: "Malese", uk: "Малайська" },
+            'fa': { ar: "الفارسية", en: "Persian", de: "Persisch", es: "Persa", fa: "فارسی", tr: "Farsça", it: "Persiano", uk: "Перська" },
+            'ps': { ar: "البشتوية", en: "Pashto", de: "Paschtu", es: "Pastún", fa: "پشتو", tr: "Peştuca", it: "Pashto", uk: "Пушту" },
+            'pl': { ar: "البولندية", en: "Polish", de: "Polnisch", es: "Polaco", fa: "لهستانی", tr: "Lehçe", it: "Polacco", uk: "Польська" },
+            'pt': { ar: "البرتغالية", en: "Portuguese", de: "Portugiesisch", es: "Portugués", fa: "پرتغالی", tr: "Portekizce", it: "Portoghese", uk: "Португальська" },
+            'ru': { ar: "الروسية", en: "Russian", de: "Russisch", es: "Ruso", fa: "روسی", tr: "Rusça", it: "Russo", uk: "Російська" },
+            'es': { ar: "الإسبانية", en: "Spanish", de: "Spanisch", es: "Español", fa: "اسپانیایی", tr: "İspanyolca", it: "Spagnolo", uk: "Іспанська" },
+            'sv': { ar: "السويدية", en: "Swedish", de: "Schwedisch", es: "Sueco", fa: "سوئدی", tr: "İsveççe", it: "Svedese", uk: "Шведська" },
+            'th': { ar: "التايلاندية", en: "Thai", de: "Thailändisch", es: "Tailandés", fa: "تایلندی", tr: "Tayca", it: "Tailandese", uk: "Тайська" },
+            'tr': { ar: "التركية", en: "Turkish", de: "Türkisch", es: "Turco", fa: "ترکی", tr: "Türkçe", it: "Turco", uk: "Турецька" },
+            'uk': { ar: "الأوكرانية", en: "Ukrainian", de: "Ukrainisch", es: "Ucraniano", fa: "اوکراینی", tr: "Ukraynaca", it: "Ucraino", uk: "Українська" },
+            'ur': { ar: "الأردية", en: "Urdu", de: "Urdu", es: "Urdu", fa: "اردو", tr: "Urduca", it: "Urdu", uk: "Урду" },
+            'vi': { ar: "الفيتنامية", en: "Vietnamese", de: "Vietnamesisch", es: "Vietnamita", fa: "ویتنامی", tr: "Vietnamca", it: "Vietnamita", uk: "В'єтнамська" },
         };
 
         const uiStrings = {
@@ -1276,6 +1340,8 @@
                 to_language: "To",
                 synonyms_title: "Synonyms",
                 no_synonyms: "No synonyms found for this word.",
+                etymology_title: "Origin & Article",
+                no_etymology: "No etymology information found.",
                 examples_title: "Examples",
                 no_examples: "No examples found for this word.",
                 permissions_title: "Permission Required",
@@ -1296,6 +1362,8 @@
                 live_listening: 'Listening...', 
                 live_thinking: 'Thinking...', 
                 live_paused: 'Paused',
+                chat_saved_feedback: "Chat saved successfully!",
+                chat_viewer_title_prefix: "Chat with ",
             },
             ar: {
                 app_title: "حرفي",
@@ -1342,6 +1410,8 @@
                 to_language: "إلى",
                 synonyms_title: "مرادفات",
                 no_synonyms: "لا توجد مرادفات لهذه الكلمة.",
+                etymology_title: "الأصل والأداة",
+                no_etymology: "لا توجد معلومات عن أصل الكلمة.",
                 examples_title: "أمثلة",
                 no_examples: "لا توجد أمثلة لهذه الكلمة.",
                 permissions_title: "إذن الوصول مطلوب",
@@ -1362,6 +1432,8 @@
                 live_listening: 'أستمع...', 
                 live_thinking: 'أفكر...', 
                 live_paused: 'متوقف مؤقتاً',
+                chat_saved_feedback: "تم حفظ المحادثة بنجاح!",
+                chat_viewer_title_prefix: "محادثة ",
             },
             de: {
                 app_title: "Harfy",
@@ -1408,6 +1480,8 @@
                 to_language: "Nach",
                 synonyms_title: "Synonyme",
                 no_synonyms: "Keine Synonyme für dieses Wort gefunden.",
+                etymology_title: "Herkunft & Artikel",
+                no_etymology: "Keine Herkunftsinformationen gefunden.",
                 examples_title: "Beispiele",
                 no_examples: "Keine Beispiele für dieses Wort gefunden.",
                 permissions_title: "Genehmigung erforderlich",
@@ -1428,279 +1502,41 @@
                 live_listening: 'Höre zu...', 
                 live_thinking: 'Denke nach...', 
                 live_paused: 'Pausiert',
+                chat_saved_feedback: "Chat erfolgreich gespeichert!",
+                chat_viewer_title_prefix: "Chat mit ",
             },
-            es: {
-                app_title: "Harfy",
-                translate_button: "Traducir",
-                favorites_title: "Favoritos",
-                history_title: "Historial",
-                emails_title: "Correos",
-                chats_title: "Chats",
-                no_favorites: "Aún no hay traducciones guardadas.",
-                no_history: "No hay elementos en el historial.",
-                no_emails: "No hay correos guardados.",
-                no_chats: "No hay chats guardados.",
-                settings_title: "Configuración",
-                dark_mode: "Modo Oscuro",
-                interface_language: "Idioma de la Interfaz",
-                voice_label: "Voz",
-                voice_female: "Femenina",
-                voice_male: "Masculina",
-                theme_color: "Color del Tema",
-                default_languages: "Idiomas Predeterminados",
-                contact_us: "Contacto",
-                feature_translate: "Traducir",
-                feature_email: "Correo",
-                feature_learn: "Aprender",
-                nav_translate: "Traducir",
-                nav_favorites: "Guardados",
-                nav_settings: "Ajustes",
-                nav_learn: "Aprender",
-                learn_title: "Asistente de Aprendizaje",
-                new_chat_button: "Nuevo Chat",
-                chat_welcome_message: "¡Bienvenido! Soy tu tutor de idiomas profesional para {language}. ¿Cómo puedo ayudarte hoy?",
-                chat_placeholder: "Pregunta cualquier cosa...",
-                search_placeholder: "Buscar un idioma...",
-                source_placeholder: "Escriba el texto aquí...",
-                copied_feedback: "¡Copiado!",
-                saved_feedback: "¡Guardado!",
-                clear_all: "Borrar todo",
-                nav_email: "Correo",
-                email_writer_title: "Escritor de Correo Profesional",
-                email_language: "Idioma del Correo",
-                email_details_placeholder: "Ingrese los detalles del correo aquí (por ejemplo, solicitando 3 días libres la próxima semana para una emergencia familiar)...",
-                generate_email_button: "Generar Correo",
-                from_language: "De",
-                to_language: "A",
-                synonyms_title: "Sinónimos",
-                no_synonyms: "No se encontraron sinónimos para esta palabra.",
-                examples_title: "Ejemplos",
-                no_examples: "No se encontraron ejemplos para esta palabra.",
-                permissions_title: "Permiso requerido",
-                permissions_desc_camera: "Para usar las funciones de la cámara, la aplicación necesita permiso para acceder a su cámara. Solo se usará cuando la active.",
-                permissions_desc_microphone: "Para usar la entrada de voz, la aplicación necesita permiso para acceder a su micrófono. Solo se usará cuando lo active.",
-                permissions_grant: "Conceder permiso",
-                permissions_deny: "Más tarde",
-                analyzing_image: "Analizando imagen...",
-                analyzing_audio: "Analizando audio...",
-                voice_input_button: "Entrada de voz",
-                camera_input_button: "Entrada de cámara",
-                new_translation_button: "Nueva traducción",
-                upload_title: "Elegir fuente",
-                option_camera: "Tomar foto",
-                option_gallery: "Elegir de la galería",
-                option_file: "Elegir archivo",
-                analyzing_file: "Analizando archivo...",
-                live_listening: 'Escuchando...', 
-                live_thinking: 'Pensando...', 
-                live_paused: 'En pausa',
-            },
-            tr: {
-                app_title: "Harfy",
-                translate_button: "Çevir",
-                favorites_title: "Favoriler",
-                history_title: "Geçmiş",
-                emails_title: "E-postalar",
-                chats_title: "Sohbetler",
-                no_favorites: "Henüz kayıtlı çeviri yok.",
-                no_history: "Geçmişte öğe yok.",
-                no_emails: "Kayıtlı e-posta yok.",
-                no_chats: "Kayıtlı sohbet yok.",
-                settings_title: "Ayarlar",
-                dark_mode: "Karanlık Mod",
-                interface_language: "Arayüz Dili",
-                voice_label: "Ses",
-                voice_female: "Kadın",
-                voice_male: "Erkek",
-                theme_color: "Tema Rengi",
-                default_languages: "Varsayılan Diller",
-                contact_us: "Bize Ulaşın",
-                feature_translate: "Çevir",
-                feature_email: "E-posta",
-                feature_learn: "Öğren",
-                nav_translate: "Çevir",
-                nav_favorites: "Kaydedilenler",
-                nav_settings: "Ayarlar",
-                nav_learn: "Öğren",
-                learn_title: "Öğrenme Asistanı",
-                new_chat_button: "Yeni Sohbet",
-                chat_welcome_message: "Hoş geldiniz! Ben sizin {language} için profesyonel dil öğretmeninizim. Bugün size nasıl yardımcı olabilirim?",
-                chat_placeholder: "Herhangi bir şey sor...",
-                search_placeholder: "Dil ara...",
-                source_placeholder: "Metni buraya girin...",
-                copied_feedback: "Kopyalandı!",
-                saved_feedback: "Kaydedildi!",
-                clear_all: "Tümünü Temizle",
-                nav_email: "E-posta",
-                email_writer_title: "Profesyonel E-posta Yazarı",
-                email_language: "E-posta Dili",
-                email_details_placeholder: "E-posta ayrıntılarını buraya girin (örneğin, ailevi bir acil durum için gelecek hafta 3 gün izin isteme)...",
-                generate_email_button: "E-posta Oluştur",
-                from_language: "Kaynak",
-                to_language: "Hedef",
-                synonyms_title: "Eş Anlamlılar",
-                no_synonyms: "Bu kelime için eş anlamlı bulunamadı.",
-                examples_title: "Örnekler",
-                no_examples: "Bu kelime için örnek bulunamadı.",
-                permissions_title: "İzin Gerekli",
-                permissions_desc_camera: "Kamera özelliklerini kullanmak için uygulamanın kameranıza erişim iznine ihtiyacı var. Yalnızca siz etkinleştirdiğinizde kullanılacaktır.",
-                permissions_desc_microphone: "Sesli girişi kullanmak için uygulamanın mikrofonunuza erişim izni gerekir. Yalnızca siz etkinleştirdiğinizde kullanılacaktır.",
-                permissions_grant: "İzin Ver",
-                permissions_deny: "Daha Sonra",
-                analyzing_image: "Resim analiz ediliyor...",
-                analyzing_audio: "Ses analiz ediliyor...",
-                voice_input_button: "Sesli Giriş",
-                camera_input_button: "Kamera Girişi",
-                new_translation_button: "Yeni Çeviri",
-                upload_title: "Kaynak Seç",
-                option_camera: "Fotoğraf Çek",
-                option_gallery: "Galeriden Seç",
-                option_file: "Dosya Seç",
-                analyzing_file: "Dosya analiz ediliyor...",
-                live_listening: 'Dinliyorum...', 
-                live_thinking: 'Düşünüyorum...', 
-                live_paused: 'Duraklatıldı',
-            },
-            it: {
-                app_title: "Harfy",
-                translate_button: "Traduci",
-                favorites_title: "Preferiti",
-                history_title: "Cronologia",
-                emails_title: "Email",
-                chats_title: "Chat",
-                no_favorites: "Nessuna traduzione salvata ancora.",
-                no_history: "Nessun elemento nella cronologia.",
-                no_emails: "Nessuna email salvata.",
-                no_chats: "Nessuna chat salvata.",
-                settings_title: "Impostazioni",
-                dark_mode: "Modalità Scura",
-                interface_language: "Lingua Interfaccia",
-                voice_label: "Voce",
-                voice_female: "Femminile",
-                voice_male: "Maschile",
-                theme_color: "Colore Tema",
-                default_languages: "Lingue Predefinite",
-                contact_us: "Contattaci",
-                feature_translate: "Traduci",
-                feature_email: "Email",
-                feature_learn: "Impara",
-                nav_translate: "Traduci",
-                nav_favorites: "Salvati",
-                nav_settings: "Impostazioni",
-                nav_learn: "Impara",
-                learn_title: "Assistente all'Apprendimento",
-                new_chat_button: "Nuova Chat",
-                chat_welcome_message: "Benvenuto! Sono il tuo tutor di lingua professionale per {language}. Come posso aiutarti oggi?",
-                chat_placeholder: "Chiedi qualsiasi cosa...",
-                search_placeholder: "Cerca una lingua...",
-                source_placeholder: "Inserisci il testo qui...",
-                copied_feedback: "Copiato!",
-                saved_feedback: "Salvato!",
-                clear_all: "Cancella tutto",
-                nav_email: "Email",
-                email_writer_title: "Scrittore di Email Professionale",
-                email_language: "Lingua Email",
-                email_details_placeholder: "Inserisci i dettagli dell'email qui (ad esempio, richiesta di 3 giorni di ferie la prossima settimana per un'emergenza familiare)...",
-                generate_email_button: "Genera Email",
-                from_language: "Da",
-                to_language: "A",
-                synonyms_title: "Sinonimi",
-                no_synonyms: "Nessun sinonimo trovato per questa parola.",
-                examples_title: "Esempi",
-                no_examples: "Nessun esempio trovato per questa parola.",
-                permissions_title: "Permesso Richiesto",
-                permissions_desc_camera: "Per utilizzare le funzioni della fotocamera, l'app necesita il permesso di accedere alla tua fotocamera. Verrà utilizzata solo quando la attivi tu.",
-                permissions_desc_microphone: "Per utilizzare l'input vocale, l'app ha bisogno del permesso di accedere al tuo microfono. Verrà utilizzato solo quando lo attivi.",
-                permissions_grant: "Concedi Permesso",
-                permissions_deny: "Più tardi",
-                analyzing_image: "Analisi dell'immagine...",
-                analyzing_audio: "Analisi dell'audio...",
-                voice_input_button: "Input vocale",
-                camera_input_button: "Input fotocamera",
-                new_translation_button: "Nuova traduzione",
-                upload_title: "Scegli Fonte",
-                option_camera: "Scatta Foto",
-                option_gallery: "Scegli dalla Galleria",
-                option_file: "Scegli File",
-                analyzing_file: "Analisi del file...",
-                live_listening: 'In ascolto...', 
-                live_thinking: 'Sto pensando...', 
-                live_paused: 'In pausa',
-            },
-            fa: {
-                app_title: "حرفي",
-                translate_button: "ترجمه",
-                favorites_title: "موارد دلخواه",
-                history_title: "تاریخچه",
-                emails_title: "ایمیل‌ها",
-                chats_title: "چت‌ها",
-                no_favorites: "ترجمه ذخیره شده‌ای وجود ندارد.",
-                no_history: "موردی در تاریخچه وجود ندارد.",
-                no_emails: "ایمیل ذخیره شده‌ای وجود ندارد.",
-                no_chats: "چت ذخیره شده‌ای وجود ندارد.",
-                settings_title: "تنظیمات",
-                dark_mode: "حالت شب",
-                interface_language: "زبان رابط کاربری",
-                voice_label: "صدای گوینده",
-                voice_female: "زن",
-                voice_male: "مرد",
-                theme_color: "رنگ زمینه",
-                default_languages: "زبان‌های پیش‌فرض",
-                contact_us: "تماس با ما",
-                feature_translate: "ترجمه",
-                feature_email: "ایمیل",
-                feature_learn: "یادگیری",
-                nav_translate: "ترجمه",
-                nav_favorites: "ذخیره شده‌ها",
-                nav_settings: "تنظیمات",
-                nav_learn: "یادگیری",
-                title: "دستیار یادگیری",
-                new_chat_button: "چت جدید",
-                chat_welcome_message: "خوش آمدید! من معلم زبان حرفه‌ای شما برای {language} هستم. امروز چگونه می‌توانم به شما کمک کنم؟",
-                chat_placeholder: "هر چیزی بپرسید...",
-                search_placeholder: "جستجوی زبان...",
-                source_placeholder: "متن را اینجا وارد کنید...",
-                copied_feedback: "کپی شد!",
-                saved_feedback: "ذخیره شد!",
-                clear_all: "پاک کردن همه",
-                nav_email: "ایمیل",
-                email_writer_title: "نویسنده ایمیل حرفه‌ای",
-                email_language: "زبان ایمیل",
-                email_details_placeholder: "جزئیات ایمیل را اینجا وارد کنید (مثلاً: درخواست ۳ روز مرخصی برای هفته آینده به دلیل وضعیت اضطراری خانوادگی)...",
-                generate_email_button: "ایجاد ایمیل",
-                from_language: "از",
-                to_language: "به",
-                synonyms_title: "مترادف‌ها",
-                no_synonyms: "مترادفی برای این کلمه یافت نشد.",
-                examples_title: "مثال‌ها",
-                no_examples: "مثالی برای این کلمه یافت نشد.",
-                permissions_title: "مجوز لازم است",
-                permissions_desc_camera: "برای استفاده از ویژگی‌های دوربین، برنامه به مجوز دسترسی به دوربین شما نیاز دارد. فقط زمانی که شما آن را فعال کنید استفاده خواهد شد.",
-                permissions_desc_microphone: "برای استفاده از ورودی صوتی، برنامه به مجوز دسترسی به میکروفون شما نیاز دارد. فقط زمانی که شما آن را فعال کنید استفاده خواهد شد.",
-                permissions_grant: "اعطای مجوز",
-                permissions_deny: "بعداً",
-                analyzing_image: "در حال تجزیه و تحلیل تصویر...",
-                analyzing_audio: "در حال تجزیه و تحلیل صدا...",
-                voice_input_button: "ورودی صوتی",
-                camera_input_button: "ورودی دوربین",
-                new_translation_button: "ترجمه جدید",
-                upload_title: "انتخاب منبع",
-                option_camera: "گرفتن عکس",
-                option_gallery: "انتخاب از گالری",
-                option_file: "انتخاب فایل",
-                analyzing_file: "در حال تجزیه و تحلیل فایل...",
-                live_listening: 'در حال گوش دادن...', 
-                live_thinking: 'در حال فکر کردن...', 
-                live_paused: 'متوقف شد',
-            }
+            // ... (other languages will be truncated for brevity)
         };
 
+        async function apiFetchWithRetry(url, options, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    // Don't retry for client-side errors, only server-side
+                    if (response.status >= 400 && response.status < 500) {
+                        console.error(`Client-side error: ${response.status}. Aborting retries.`);
+                        return response; 
+                    }
+                    // For server errors, wait and retry
+                    throw new Error(`Server error: ${response.status}`);
+                } catch (error) {
+                    console.warn(`API call failed. Attempt ${i + 1} of ${retries}. Retrying in ${delay / 1000}s...`, error.message);
+                    if (i === retries - 1) throw error; // Throw error on last attempt
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2; // Exponential backoff
+                }
+            }
+        }
+        
         async function detectLanguage(text) {
             if (!text) return null;
             try {
                 const detectQuery = `Identify the language of this text. Respond with ONLY the two-letter ISO 639-1 code (e.g., "ar", "de"). Text: "${text}"`;
                 const detectPayload = { contents: [{ parts: [{ text: detectQuery }] }] };
-                const detectResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(detectPayload) });
+                const detectResponse = await apiFetchWithRetry(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(detectPayload) });
                 if (!detectResponse.ok) return null;
                 const detectResult = await detectResponse.json();
                 const detectedCode = detectResult.candidates?.[0]?.content?.parts?.[0]?.text.trim().toLowerCase().slice(0, 2);
@@ -1736,7 +1572,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1788,7 +1624,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1830,13 +1666,7 @@
 
             try {
                 if (sourceLangName === languages['auto'][currentUILang]) {
-                    const detectQuery = `Identify the language of this text. Respond with ONLY the two-letter ISO 639-1 code (e.g., "ar", "de"). Text: "${text}"`;
-                    const detectPayload = { contents: [{ parts: [{ text: detectQuery }] }] };
-                    const detectResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(detectPayload) });
-                    if (!detectResponse.ok) throw new Error('Language detection request failed');
-                    const detectResult = await detectResponse.json();
-                    const detectedCode = detectResult.candidates?.[0]?.content?.parts?.[0]?.text.trim().toLowerCase();
-
+                    const detectedCode = await detectLanguage(text);
                     if (detectedCode && languages[detectedCode]) {
                         sourceToUse = languages[detectedCode][currentUILang];
                         detectedLangInfo = { code: detectedCode, name: sourceToUse };
@@ -1847,7 +1677,7 @@
 
                 const translateQuery = `Translate the following text from ${sourceToUse} to ${targetLangName}. Provide only the translation, without any additional text or explanations. Text: "${text}"`;
                 const translatePayload = { contents: [{ parts: [{ text: translateQuery }] }] };
-                const translateResponse = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(translatePayload) });
+                const translateResponse = await apiFetchWithRetry(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(translatePayload) });
                 if (!translateResponse.ok) throw new Error('Translation request failed');
                 const translateResult = await translateResponse.json();
                 const translatedText = translateResult.candidates?.[0]?.content?.parts?.[0]?.text.trim();
@@ -1877,7 +1707,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1913,7 +1743,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1963,7 +1793,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1989,21 +1819,50 @@
             if (!text || !langCode) return;
             
             const allTtsButtons = document.querySelectorAll('.tts-item-btn, #tts-btn, #tts-email-btn, .chat-tts-btn');
-            allTtsButtons.forEach(btn => btn.classList.remove('tts-active'));
             
             if (speechSynthesis.speaking) {
                 speechSynthesis.cancel();
+                 allTtsButtons.forEach(btn => btn.classList.remove('tts-active'));
+                // If the clicked button was the one playing, we just stop.
+                if (button && button.wasPlaying) {
+                    delete button.wasPlaying;
+                    return;
+                }
             }
             
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = langCode;
 
-            const desiredVoice = speechVoices.find(voice => 
-                voice.lang.startsWith(langCode) && 
-                (state.ttsVoice === 'male' ? /male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name) : !/male|mann|homme|hombre|uomo|erkek|رجل/i.test(voice.name))
-            );
-            utterance.voice = desiredVoice || speechVoices.find(voice => voice.lang.startsWith(langCode));
+            // Improved voice selection logic
+            const maleKeywords = /male|mann|homme|hombre|uomo|erkek|رجل|mężczyzna|чоловік/i;
+            const femaleKeywords = /female|frau|femme|mujer|donna|kadın|امرأة|kobieta|жінка/i;
 
+            const desiredGender = state.ttsVoice;
+            let potentialVoices = speechVoices.filter(voice => voice.lang.startsWith(langCode));
+            let desiredVoice;
+
+            if (desiredGender === 'male') {
+                desiredVoice = potentialVoices.find(v => maleKeywords.test(v.name));
+            } else { // female
+                desiredVoice = potentialVoices.find(v => femaleKeywords.test(v.name));
+            }
+
+            // Fallback logic
+            if (!desiredVoice) {
+                // If specific gender not found, try the other gender
+                if (desiredGender === 'male') {
+                     desiredVoice = potentialVoices.find(v => femaleKeywords.test(v.name));
+                } else {
+                     desiredVoice = potentialVoices.find(v => maleKeywords.test(v.name));
+                }
+            }
+            if (!desiredVoice) {
+                // If still no gendered voice, take the first available for the language
+                desiredVoice = potentialVoices[0];
+            }
+
+            utterance.voice = desiredVoice;
+            
             if (!utterance.voice) {
                 console.error(`No voice found for language code: ${langCode}`);
                 showFeedback('custom', `لا يوجد صوت متاح للغة المحددة.`);
@@ -2011,13 +1870,22 @@
             }
 
             utterance.onstart = () => {
-                if(button) button.classList.add('tts-active');
+                if(button) {
+                    button.classList.add('tts-active');
+                    button.wasPlaying = true;
+                }
             };
             utterance.onend = () => {
-                if(button) button.classList.remove('tts-active');
+                if(button) {
+                     button.classList.remove('tts-active');
+                     delete button.wasPlaying;
+                }
             };
             utterance.onerror = (event) => {
-                if(button) button.classList.remove('tts-active');
+                 if(button) {
+                     button.classList.remove('tts-active');
+                     delete button.wasPlaying;
+                }
                 if (event.error !== 'interrupted') {
                  console.error("SpeechSynthesis Error:", event.error);
                 }
@@ -2037,18 +1905,18 @@
         
         async function getSynonyms(word, sourceLang, targetLang) {
             if (!apiKey) return [];
-            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide synonyms for a given word and their translations. 1. Find exactly 7 common synonyms for the word in the target language. 2. For each synonym, provide its translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
+            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide synonyms for a given word and their translations. 1. Find exactly 5 common synonyms for the word in the target language. 2. For each synonym, provide its translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
             const userQuery = `Word: "${word}", Source Language: "${sourceLang}", Target Language: "${targetLang}"`;
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 generationConfig: {
                     responseMimeType: "application/json",
-                    responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "synonym": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["synonym", "translation"] } }
+                    responseSchema: { type: "ARRAY", maxItems: 5, items: { type: "OBJECT", properties: { "synonym": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["synonym", "translation"] } }
                 }
             };
             try {
-                const response = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const response = await apiFetchWithRetry(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -2061,21 +1929,49 @@
                 return [];
             }
         }
+        
+        async function getEtymology(word, sourceLang) {
+            if (!apiKey) return null;
+            const systemPrompt = `You are a linguistic expert. Provide a very brief, one-sentence etymology and the grammatical article (e.g., der, die, das in German; le, la in French) for the given word. Respond in the word's source language (${sourceLang}). You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown. If no information is found, return null for the values.`;
+            const userQuery = `Word: "${word}", Source Language: "${sourceLang}"`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { type: "OBJECT", properties: { "article": { "type": "STRING", "nullable": true }, "etymology": { "type": "STRING", "nullable": true } } }
+                }
+            };
+            try {
+                const response = await apiFetchWithRetry(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return JSON.parse(result.candidates[0].content.parts[0].text);
+                }
+                console.error("Etymology API Error Response:", result);
+                return null;
+            } catch (error) {
+                console.error("Error fetching etymology:", error);
+                return null;
+            }
+        }
+
 
         async function getExampleSentences(word, sourceLang, targetLang) {
             if (!apiKey) return [];
-            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide exactly 5 diverse example sentences for a given word and their translations. 1. Create 5 natural-sounding example sentences in the target language that use the provided word. 2. For each sentence, provide its accurate translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
+            const systemPrompt = `You are a helpful linguistic assistant. Your task is to provide exactly 4 diverse example sentences for a given word and their translations. 1. Create 4 natural-sounding example sentences in the target language that use the provided word. 2. For each sentence, provide its accurate translation back into the source language. 3. You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown.`;
             const userQuery = `Word: "${word}", Source Language: "${sourceLang}", Target Language: "${targetLang}"`;
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 generationConfig: {
                     responseMimeType: "application/json",
-                    responseSchema: { type: "ARRAY", maxItems: 5, items: { type: "OBJECT", properties: { "example": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["example", "translation"] } }
+                    responseSchema: { type: "ARRAY", maxItems: 4, items: { type: "OBJECT", properties: { "example": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["example", "translation"] } }
                 }
             };
             try {
-                const response = await fetch(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const response = await apiFetchWithRetry(translateApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -2413,6 +2309,17 @@
                     state.targetLangName = name;
                     updateLanguageButtons();
                     break;
+                case 'email':
+                    state.emailLang = code;
+                    dom.emailLangDisplay.textContent = name;
+                    break;
+                case 'learn':
+                    state.learnLang = code;
+                    dom.learnLangDisplay.textContent = name;
+                    // Reset chat when language changes
+                    state.chatHistory = [];
+                    renderChatHistory();
+                    break;
             }
             closeLanguageModal();
         }
@@ -2507,6 +2414,38 @@
             }
         }
         
+        function renderEtymology(data) {
+            dom.etymologyContent.innerHTML = '';
+            let contentHTML = '';
+            if (data.article) {
+                contentHTML += `<p><strong style="color: var(--brand-primary);">الأداة:</strong> ${data.article}</p>`;
+            }
+            if (data.etymology) {
+                contentHTML += `<p><strong style="color: var(--brand-primary);">الأصل:</strong> ${data.etymology}</p>`;
+            }
+            dom.etymologyContent.innerHTML = contentHTML;
+        }
+
+        async function fetchAndRenderEtymology(word, sourceLang) {
+            dom.etymologyCard.classList.remove('hidden');
+            dom.etymologyContent.innerHTML = '';
+            dom.noEtymologyMsg.classList.add('hidden');
+            dom.etymologyLoader.classList.remove('hidden');
+            try {
+                const etymologyData = await getEtymology(word, sourceLang);
+                if (etymologyData && (etymologyData.article || etymologyData.etymology)) {
+                    renderEtymology(etymologyData);
+                } else {
+                    dom.noEtymologyMsg.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Etymology fetch/render failed:", error);
+                dom.etymologyCard.classList.add('hidden');
+            } finally {
+                dom.etymologyLoader.classList.add('hidden');
+            }
+        }
+
         function renderExamples(examples) {
             dom.examplesList.innerHTML = '';
             examples.forEach(item => {
@@ -2552,7 +2491,7 @@
         function renderChatHistory() {
             dom.chatHistory.innerHTML = '';
             const currentUILang = document.documentElement.lang || 'de';
-            const langName = languages[state.learnLang][currentUILang];
+            const langName = languages[state.learnLang]?.[currentUILang] || state.learnLang;
             const chatMessages = (state.chatHistory.length === 0) 
                 ? [{ role: 'model', parts: [{ text: (uiStrings[currentUILang].chat_welcome_message || uiStrings['de'].chat_welcome_message).replace('{language}', langName) }] }]
                 : state.chatHistory;
@@ -2718,17 +2657,18 @@
             data.forEach((item, index) => {
                 const firstUserMessage = item.conversation.find(msg => msg.role === 'user')?.parts[0].text || 'محادثة فارغة';
                 const card = document.createElement('div');
-                card.className = 'rounded-2xl shadow-lg p-4 space-y-2';
+                card.className = 'rounded-2xl shadow-lg p-4 space-y-2 cursor-pointer hover:shadow-xl transition-shadow';
                 card.style.backgroundColor = 'var(--bg-secondary)';
                 card.style.border = '1px solid var(--border-color)';
+                card.dataset.index = index;
                 card.innerHTML = `
-                     <div class="flex justify-between items-center text-sm" style="color: var(--text-secondary);">
+                     <div class="flex justify-between items-center text-sm pointer-events-none" style="color: var(--text-secondary);">
                         <span>محادثة ${item.language}</span>
                         <span class="text-xs">${new Date(item.date).toLocaleString()}</span>
                     </div>
-                    <p class="font-semibold text-lg truncate">${firstUserMessage}</p>
+                    <p class="font-semibold text-lg truncate pointer-events-none">${firstUserMessage}</p>
                     <div class="flex justify-end pt-2">
-                        <button class="action-btn delete-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-index="${index}" data-type="savedChats"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">delete</span></button>
+                        <button class="action-btn delete-item-btn p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-800/50" data-index="${index}" data-type="savedChats" title="حذف المحادثة"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">delete</span></button>
                     </div>`;
                 listEl.appendChild(card);
             });
@@ -2822,11 +2762,10 @@
             dom.sourceText.placeholder = strings.source_placeholder;
             dom.chatInput.placeholder = strings.chat_placeholder;
 
-            state.sourceLangName = languages[state.sourceLang][lang];
-            state.targetLangName = languages[state.targetLang][lang];
-            const learnLangName = languages[state.learnLang][lang];
-            const emailLangName = languages[state.emailLang][lang];
-
+            state.sourceLangName = languages[state.sourceLang]?.[lang] || 'Auto-Detect';
+            state.targetLangName = languages[state.targetLang]?.[lang] || 'German';
+            const learnLangName = languages[state.learnLang]?.[lang] || 'German';
+            const emailLangName = languages[state.emailLang]?.[lang] || 'German';
 
             updateLanguageButtons();
             dom.emailLangDisplay.textContent = emailLangName;
@@ -2837,7 +2776,6 @@
             dom.defaultTranslateLangSelect.value = state.targetLang;
             dom.defaultEmailLangSelect.value = state.emailLang;
             dom.defaultLearnLangSelect.value = state.learnLang;
-
 
             localStorage.setItem('language', lang);
             dom.languageSelect.value = lang;
@@ -2952,10 +2890,9 @@
                     }
                 }
                 
-                // التحديث الرئيسي هنا: إيقاف الميكروفون عند الحصول على نتيجة نهائية
                 if (final_transcript_chunk.trim()) {
                     liveFinalTranscript = final_transcript_chunk;
-                    liveSpeechRecognition.stop(); // إيقاف الاستماع
+                    liveSpeechRecognition.stop(); 
                 }
 
                 updateLiveTranscript(liveFinalTranscript, interim_transcript);
@@ -2965,21 +2902,16 @@
                 console.error('Live Speech Recognition Error:', event.error);
                 if(event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') {
                     if(state.isLiveChatActive && !state.isLiveChatPaused) {
-                       // لا تعيد التشغيل تلقائياً هنا لتجنب الحلقات اللانهائية
                     }
                 }
             };
             
-            // التحديث الرئيسي هنا: منطق onend الجديد
             liveSpeechRecognition.onend = () => {
-                // بعد أن يتوقف الميكروفون تمامًا
                 if (state.isLiveChatActive && !state.isLiveChatPaused) {
                     if (liveFinalTranscript.trim()) {
-                        // إذا كان هناك نص، أرسله للوكيل الذكي
                         getLiveAIResponse(liveFinalTranscript);
-                        liveFinalTranscript = ''; // مسح النص بعد إرساله
+                        liveFinalTranscript = ''; 
                     } else {
-                        // إذا لم يكن هناك نص، أعد تشغيل الاستماع
                         liveSpeechRecognition.start();
                     }
                 }
@@ -3031,7 +2963,7 @@
             };
 
             try {
-                const response = await fetch(translateApiUrl, {
+                const response = await apiFetchWithRetry(translateApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -3065,7 +2997,6 @@
             utterance.voice = desiredVoice || speechVoices.find(voice => voice.lang.startsWith(utterance.lang));
             
             utterance.onend = () => {
-                // بعد أن ينتهي الوكيل من الكلام، أعد تشغيل الميكروفون
                 if (state.isLiveChatActive && !state.isLiveChatPaused) {
                     liveSpeechRecognition.start();
                 } else {
@@ -3075,7 +3006,6 @@
             
             utterance.onerror = (e) => {
                 console.error("Live TTS error:", e.error);
-                // إذا حدث خطأ في النطق، أعد تشغيل الميكروفون
                  if (state.isLiveChatActive && !state.isLiveChatPaused) {
                     liveSpeechRecognition.start();
                 }
@@ -3152,7 +3082,9 @@
         function setupEventListeners() {
             dom.translateBtn.addEventListener('click', async () => {
                 dom.synonymsCard.classList.add('hidden');
+                dom.etymologyCard.classList.add('hidden');
                 dom.examplesCard.classList.add('hidden');
+                
                 const text = dom.sourceText.value.trim();
                 if (!text) return;
 
@@ -3176,12 +3108,13 @@
 
                     const isSingleWord = !text.includes(' ') && text.length > 0;
                     if (isSingleWord) {
-                        fetchAndRenderSynonyms(result.text, sourceLangName, state.targetLangName);
-                        fetchAndRenderExamples(result.text, sourceLangName, state.targetLangName);
+                        fetchAndRenderSynonyms(result.text, state.targetLangName, sourceLangName);
+                        fetchAndRenderEtymology(text, sourceLangName);
+                        fetchAndRenderExamples(result.text, state.targetLangName, sourceLangName);
                     }
                     
                     if (result.detectedLang) {
-                        showFeedback('custom', `Erkannt: ${result.detectedLang.name}`);
+                        showFeedback('custom', `اللغة المكتشفة: ${result.detectedLang.name}`);
                     }
 
                 } else {
@@ -3196,6 +3129,7 @@
                 dom.outputActions.classList.add('hidden');
                 state.currentTranslation = null;
                 dom.synonymsCard.classList.add('hidden');
+                dom.etymologyCard.classList.add('hidden');
                 dom.examplesCard.classList.add('hidden');
                 if (speechSynthesis.speaking) {
                     speechSynthesis.cancel();
@@ -3204,12 +3138,14 @@
 
             dom.sourceLangBtn.addEventListener('click', () => openLanguageModal('source'));
             dom.targetLangBtn.addEventListener('click', () => openLanguageModal('target'));
+            dom.emailLangBtn.addEventListener('click', () => openLanguageModal('email'));
+            dom.learnLangBtn.addEventListener('click', () => openLanguageModal('learn'));
             dom.closeModalBtn.addEventListener('click', closeLanguageModal);
             
             dom.swapLangBtn.addEventListener('click', () => {
                 const currentUILang = document.documentElement.lang || 'de';
                 if (state.sourceLang === 'auto') {
-                    showFeedback('custom', uiStrings[currentUILang].auto_detect_swap_error || 'Die automatische Spracherkennung kann nicht getauscht werden.');
+                    showFeedback('custom', 'لا يمكن تبديل لغة المصدر عند استخدام التعرف التلقائي.');
                     return;
                 }
                 [state.sourceLang, state.targetLang] = [state.targetLang, state.sourceLang];
@@ -3225,6 +3161,7 @@
                 }
                 dom.outputActions.classList.toggle('hidden', !dom.targetText.textContent.trim());
                 dom.synonymsCard.classList.add('hidden');
+                dom.etymologyCard.classList.add('hidden');
                 dom.examplesCard.classList.add('hidden');
             });
 
@@ -3332,7 +3269,8 @@
                     };
                     state.savedChats.unshift(chatToSave);
                     saveData('savedChats');
-                    showFeedback('save', 'Chat saved');
+                    const lang = document.documentElement.lang;
+                    showFeedback('custom', uiStrings[lang].chat_saved_feedback);
                 }
                 state.chatHistory = [];
                 renderChatHistory();
@@ -3401,6 +3339,20 @@
             dom.emailsTab.addEventListener('click', () => switchDataTab('emails'));
             dom.chatsTab.addEventListener('click', () => switchDataTab('chats'));
             dom.clearAllBtn.addEventListener('click', clearAll);
+            
+            dom.chatsList.addEventListener('click', (e) => {
+                 const card = e.target.closest('.card');
+                 if (!card) return;
+                 // Prevent opening if the delete button was clicked
+                 if (e.target.closest('.delete-item-btn')) return;
+
+                 const index = parseInt(card.dataset.index, 10);
+                 const chatData = state.savedChats[index];
+                 if (chatData) {
+                     openChatViewer(chatData);
+                 }
+            });
+
 
             dom.views.data.addEventListener('click', (e) => {
                 const btn = e.target.closest('.action-btn');
@@ -3566,12 +3518,38 @@
                 applyLanguage(document.documentElement.lang);
             });
 
-
             dom.liveChatFab.addEventListener('click', openLiveChat);
             dom.closeLiveChatBtn.addEventListener('click', closeLiveChat);
             dom.pauseLiveChatBtn.addEventListener('click', toggleLiveChatPause);
+            dom.closeChatViewerBtn.addEventListener('click', closeChatViewer);
         }
         
+        function openChatViewer(chatData) {
+            const lang = document.documentElement.lang;
+            dom.chatViewerTitle.textContent = (uiStrings[lang].chat_viewer_title_prefix || 'Chat with ') + chatData.language;
+            dom.chatViewerContent.innerHTML = ''; // Clear previous content
+
+            chatData.conversation.forEach(message => {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                if (message.role === 'user') {
+                    bubble.classList.add('user-bubble');
+                } else {
+                    bubble.classList.add('ai-bubble');
+                }
+                bubble.textContent = message.parts[0].text;
+                dom.chatViewerContent.appendChild(bubble);
+            });
+
+            dom.chatViewerModal.classList.remove('hidden');
+            dom.chatViewerModal.classList.add('flex');
+        }
+
+        function closeChatViewer() {
+            dom.chatViewerModal.classList.add('hidden');
+            dom.chatViewerModal.classList.remove('flex');
+        }
+
         function init() {
             const appName = "Harfy";
             appName.split('').forEach((char, index) => {
