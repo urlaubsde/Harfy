@@ -2383,15 +2383,21 @@
 
                 const synonymCard = document.createElement('div');
                 synonymCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between';
+                
+                // تحديد الكلمة البارزة بناءً على لغة الهدف
+                const isTargetLang = item.synonym === item.translation;
+                const primaryWord = isTargetLang ? item.synonym : item.translation;
+                const secondaryWord = isTargetLang ? item.translation : item.synonym;
+                
                 synonymCard.innerHTML = `
                     <div class="flex-grow">
-                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${item.synonym}</p>
-                        <p class="text-sm" style="color: var(--text-secondary);">${item.translation}</p>
+                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${primaryWord}</p>
+                        <p class="text-sm" style="color: var(--text-secondary);">${secondaryWord}</p>
                     </div>
                     <div class="flex items-center space-x-1 space-x-reverse">
-                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.synonym}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
-                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${item.translation}" data-target="${item.synonym}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
-                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.synonym}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${primaryWord}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${secondaryWord}" data-target="${primaryWord}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
+                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${primaryWord}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
                     </div>`;
                 dom.synonymsList.appendChild(synonymCard);
             });
@@ -2416,23 +2422,45 @@
         
         function renderEtymology(data) {
             dom.etymologyContent.innerHTML = '';
-            let contentHTML = '';
-            if (data.article) {
-                contentHTML += `<p><strong style="color: var(--brand-primary);">الأداة:</strong> ${data.article}</p>`;
-            }
-            if (data.etymology) {
-                contentHTML += `<p><strong style="color: var(--brand-primary);">الأصل:</strong> ${data.etymology}</p>`;
-            }
-            dom.etymologyContent.innerHTML = contentHTML;
+            
+            // تحديد المحتوى الرئيسي والأداة
+            const mainContent = data.etymology || '';
+            const articleContent = data.article || '';
+            
+            // إنشاء بطاقة بنفس تصميم بطاقات المرادفات والأمثلة
+            const etymologyCard = document.createElement('div');
+            etymologyCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex flex-col';
+            
+            // التحقق إذا كانت البطاقة محفوظة في المفضلة
+            const isFavorited = state.favorites.some(f => f.sourceText === 'الأصل اللغوي' && f.targetText === mainContent);
+            const starIcon = isFavorited ? 'star' : 'star_outline';
+            const starStyle = isFavorited 
+                ? `color: #facc15; font-variation-settings: 'FILL' 1;`
+                : `color: var(--text-secondary); font-variation-settings: 'FILL' 0;`;
+            
+            // إنشاء محتوى البطاقة
+            etymologyCard.innerHTML = `
+                <div class="flex-grow">
+                    <p class="font-semibold text-lg mb-2" style="color: var(--brand-primary);">الأصل اللغوي</p>
+                    ${mainContent ? `<p class="text-base mb-2" style="color: var(--text-primary);">${mainContent}</p>` : ''}
+                    ${articleContent ? `<p class="text-sm" style="color: var(--text-secondary);"><strong>الأداة:</strong> ${articleContent}</p>` : ''}
+                </div>
+                <div class="flex items-center space-x-1 space-x-reverse mt-2">
+                    <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${mainContent}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                    <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="الأصل اللغوي" data-target="${mainContent}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
+                    <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${mainContent}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                </div>`;
+            
+            dom.etymologyContent.appendChild(etymologyCard);
         }
 
-        async function fetchAndRenderEtymology(word, sourceLang) {
+        async function fetchAndRenderEtymology(word, targetLang) {
             dom.etymologyCard.classList.remove('hidden');
             dom.etymologyContent.innerHTML = '';
             dom.noEtymologyMsg.classList.add('hidden');
             dom.etymologyLoader.classList.remove('hidden');
             try {
-                const etymologyData = await getEtymology(word, sourceLang);
+                const etymologyData = await getEtymology(word, targetLang);
                 if (etymologyData && (etymologyData.article || etymologyData.etymology)) {
                     renderEtymology(etymologyData);
                 } else {
@@ -2457,15 +2485,24 @@
 
                 const exampleCard = document.createElement('div');
                 exampleCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between';
+                
+                // تحديد المثال والترجمة بناءً على لغة الهدف
+                const isTargetLangExample = item.example === item.translation;
+                const primaryExample = isTargetLangExample ? item.example : item.translation;
+                const secondaryExample = isTargetLangExample ? item.translation : item.example;
+                
+                // دائمًا استخدام لغة الهدف (اللغة الناتجة عن الترجمة) للنطق
+                const exampleLang = state.targetLang;
+                
                 exampleCard.innerHTML = `
                     <div class="flex-grow">
-                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${item.example}</p>
-                        <p class="text-sm" style="color: var(--text-secondary);">${item.translation}</p>
+                        <p class="font-semibold text-lg" style="color: var(--brand-primary);">${primaryExample}</p>
+                        <p class="text-sm" style="color: var(--text-secondary);">${secondaryExample}</p>
                     </div>
                     <div class="flex items-center space-x-1 space-x-reverse">
-                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.example}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
-                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${item.translation}" data-target="${item.example}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
-                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${item.example}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                        <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${primaryExample}" data-lang="${exampleLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                        <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${secondaryExample}" data-target="${primaryExample}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
+                        <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${primaryExample}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
                     </div>`;
                 dom.examplesList.appendChild(exampleCard);
             });
@@ -3109,7 +3146,7 @@
                     const isSingleWord = !text.includes(' ') && text.length > 0;
                     if (isSingleWord) {
                         fetchAndRenderSynonyms(result.text, state.targetLangName, sourceLangName);
-                        fetchAndRenderEtymology(text, sourceLangName);
+                        fetchAndRenderEtymology(result.text, state.targetLangName);
                         fetchAndRenderExamples(result.text, state.targetLangName, sourceLangName);
                     }
                     
