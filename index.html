@@ -633,6 +633,12 @@
             <div class="card rounded-2xl shadow-lg p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                 <textarea id="source-text" class="w-full h-32 bg-transparent border-none focus:ring-0 resize-none text-lg p-2" style="color: var(--text-primary);"></textarea>
                  <div class="flex justify-end items-center mt-2 space-x-2 space-x-reverse">
+                    <button id="new-translation-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50 hidden" data-key-title="new_translation_button">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">delete_sweep</span>
+                    </button>
+                    <button id="camera-btn-translate" class="camera-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="camera_input_button">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">photo_camera</span>
+                    </button>
                     <div class="relative">
                         <button id="mic-btn-translate" class="mic-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="voice_input_button">
                             <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">mic</span>
@@ -643,12 +649,6 @@
                             <span class="bar"></span>
                         </div>
                     </div>
-                    <button id="camera-btn-translate" class="camera-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="camera_input_button">
-                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">photo_camera</span>
-                    </button>
-                    <button id="new-translation-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="new_translation_button">
-                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">delete_sweep</span>
-                    </button>
                     <button id="translate-btn" class="ripple flex items-center gap-2 text-white font-bold py-2 px-5 rounded-full shadow-md hover:opacity-90 transition-transform transform active:scale-95" style="background-color: var(--brand-secondary);">
                         <span data-key="translate_button"></span>
                         <div id="loader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -740,7 +740,12 @@
             <h1 class="text-2xl font-bold text-center" style="color: var(--brand-primary);" data-key="email_writer_title"></h1>
 
             <div class="card rounded-2xl shadow-lg p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                <textarea id="email-details" class="w-full h-40 bg-transparent border-none focus:ring-0 resize-none text-lg p-2" style="color: var(--text-primary);" data-key-placeholder="email_details_placeholder"></textarea>
+                <div class="relative">
+                    <textarea id="email-details" class="w-full h-40 bg-transparent border-none focus:ring-0 resize-none text-lg p-2 pr-10" style="color: var(--text-primary);" data-key-placeholder="email_details_placeholder"></textarea>
+                    <button id="clear-email-details-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50 hidden" title="مسح التفاصيل">
+                        <span class="material-symbols-outlined text-sm" style="color: var(--text-secondary);">delete</span>
+                    </button>
+                </div>
                 
                 <div class="flex justify-between items-center mt-2">
                     <div class="flex items-center gap-2">
@@ -1340,10 +1345,13 @@
                 to_language: "To",
                 synonyms_title: "Synonyms",
                 no_synonyms: "No synonyms found for this word.",
-                etymology_title: "Origin & Article",
+                etymology_title: "Linguistic Analysis",
                 no_etymology: "No etymology information found.",
                 examples_title: "Examples",
                 no_examples: "No examples found for this word.",
+                etymology_grammatical_root: "Grammatical Root",
+                etymology_article: "Article",
+                etymology_linguistic_origin: "Linguistic Origin",
                 permissions_title: "Permission Required",
                 permissions_desc_camera: "To use camera features, the app needs permission to access your camera. It will only be used when you activate it.",
                 permissions_desc_microphone: "To use voice input, the app needs permission to access your microphone. It will only be used when you activate it.",
@@ -1410,10 +1418,13 @@
                 to_language: "إلى",
                 synonyms_title: "مرادفات",
                 no_synonyms: "لا توجد مرادفات لهذه الكلمة.",
-                etymology_title: "الأصل والأداة",
+                etymology_title: "تحليل لغوي",
                 no_etymology: "لا توجد معلومات عن أصل الكلمة.",
                 examples_title: "أمثلة",
                 no_examples: "لا توجد أمثلة لهذه الكلمة.",
+                etymology_grammatical_root: "الجذر القواعدي",
+                etymology_article: "الأداة",
+                etymology_linguistic_origin: "الأصل اللغوي",
                 permissions_title: "إذن الوصول مطلوب",
                 permissions_desc_camera: "للاستفادة من ميزات الكاميرا، يحتاج التطبيق إلى إذن للوصول إلى الكاميرا. لن يتم استخدامها إلا عندما تقوم بتفعيلها.",
                 permissions_desc_microphone: "للاستفادة من الإدخال الصوتي، يحتاج التطبيق إلى إذن للوصول إلى الميكروفون. لن يتم استخدامه إلا عندما تقوم بتفعيله.",
@@ -1480,10 +1491,13 @@
                 to_language: "Nach",
                 synonyms_title: "Synonyme",
                 no_synonyms: "Keine Synonyme für dieses Wort gefunden.",
-                etymology_title: "Herkunft & Artikel",
+                etymology_title: "Linguistische Analyse",
                 no_etymology: "Keine Herkunftsinformationen gefunden.",
                 examples_title: "Beispiele",
                 no_examples: "Keine Beispiele für dieses Wort gefunden.",
+                etymology_grammatical_root: "Grammatikalische Wurzel",
+                etymology_article: "Artikel",
+                etymology_linguistic_origin: "Sprachlicher Ursprung",
                 permissions_title: "Genehmigung erforderlich",
                 permissions_desc_camera: "Um die Kamerafunktionen nutzen zu können, benötigt die App die Berechtigung, auf Ihre Kamera zuzugreifen. Sie wird nur verwendet, wenn Sie sie aktivieren.",
                 permissions_desc_microphone: "Um die Spracheingabe zu verwenden, benötigt die App die Berechtigung, auf Ihr Mikrofon zuzugreifen. Es wird nur verwendet, wenn Sie es aktivieren.",
@@ -1930,16 +1944,28 @@
             }
         }
         
-        async function getEtymology(word, sourceLang) {
+        async function getEtymology(word, wordLanguage, explanationLanguage) {
             if (!apiKey) return null;
-            const systemPrompt = `You are a linguistic expert. Provide a very brief, one-sentence etymology and the grammatical article (e.g., der, die, das in German; le, la in French) for the given word. Respond in the word's source language (${sourceLang}). You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown. If no information is found, return null for the values.`;
-            const userQuery = `Word: "${word}", Source Language: "${sourceLang}"`;
+            const systemPrompt = `You are a linguistic expert. The user wants to understand the word "${word}" which is in ${wordLanguage}.
+Your task is to provide the following analysis, but you MUST write your entire explanation in ${explanationLanguage}.
+1.  **Grammatical Root**: The basic root or stem of the word and any associated grammatical rules (like verb type, noun gender, etc.).
+2.  **Article**: The grammatical article if applicable (e.g., der, die, das in German; le, la in French).
+3.  **Etymology**: A very brief, one-sentence linguistic origin of the word.
+You MUST respond in the valid JSON format specified in the schema. Do not add any extra text, explanations, or markdown. If a piece of information is not found, return null for its value.`;
+            const userQuery = `Analyze the word "${word}" from ${wordLanguage}, and explain it in ${explanationLanguage}.`;
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 generationConfig: {
                     responseMimeType: "application/json",
-                    responseSchema: { type: "OBJECT", properties: { "article": { "type": "STRING", "nullable": true }, "etymology": { "type": "STRING", "nullable": true } } }
+                    responseSchema: { 
+                        type: "OBJECT", 
+                        properties: { 
+                            "grammatical_root": { "type": "STRING", "nullable": true },
+                            "article": { "type": "STRING", "nullable": true }, 
+                            "etymology": { "type": "STRING", "nullable": true } 
+                        } 
+                    }
                 }
             };
             try {
@@ -2422,46 +2448,54 @@
         
         function renderEtymology(data) {
             dom.etymologyContent.innerHTML = '';
+            const currentUILang = document.documentElement.lang || 'de';
+            const strings = uiStrings[currentUILang];
             
-            // تحديد المحتوى الرئيسي والأداة
-            const mainContent = data.etymology || '';
+            const rootContent = data.grammatical_root || '';
             const articleContent = data.article || '';
+            const etymologyContent = data.etymology || '';
+
+            if (!rootContent && !articleContent && !etymologyContent) {
+                dom.noEtymologyMsg.classList.remove('hidden');
+                return;
+            }
             
-            // إنشاء بطاقة بنفس تصميم بطاقات المرادفات والأمثلة
+            let contentHtml = '';
+            if (rootContent) {
+                contentHtml += `<div class="mb-2"><p class="font-semibold" style="color: var(--brand-primary);">${strings.etymology_grammatical_root}:</p><p style="color: var(--text-primary);">${rootContent}</p></div>`;
+            }
+            if (articleContent) {
+                contentHtml += `<div class="mb-2"><p class="font-semibold" style="color: var(--brand-primary);">${strings.etymology_article}:</p><p style="color: var(--text-primary);">${articleContent}</p></div>`;
+            }
+            if (etymologyContent) {
+                contentHtml += `<div><p class="font-semibold" style="color: var(--brand-primary);">${strings.etymology_linguistic_origin}:</p><p style="color: var(--text-primary);">${etymologyContent}</p></div>`;
+            }
+
+            const fullTextToSpeak = [rootContent, articleContent, etymologyContent].filter(Boolean).join('. ');
+
             const etymologyCard = document.createElement('div');
             etymologyCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex flex-col';
             
-            // التحقق إذا كانت البطاقة محفوظة في المفضلة
-            const isFavorited = state.favorites.some(f => f.sourceText === 'الأصل اللغوي' && f.targetText === mainContent);
-            const starIcon = isFavorited ? 'star' : 'star_outline';
-            const starStyle = isFavorited 
-                ? `color: #facc15; font-variation-settings: 'FILL' 1;`
-                : `color: var(--text-secondary); font-variation-settings: 'FILL' 0;`;
-            
-            // إنشاء محتوى البطاقة
             etymologyCard.innerHTML = `
                 <div class="flex-grow">
-                    <p class="font-semibold text-lg mb-2" style="color: var(--brand-primary);">الأصل اللغوي</p>
-                    ${mainContent ? `<p class="text-base mb-2" style="color: var(--text-primary);">${mainContent}</p>` : ''}
-                    ${articleContent ? `<p class="text-sm" style="color: var(--text-secondary);"><strong>الأداة:</strong> ${articleContent}</p>` : ''}
+                    ${contentHtml}
                 </div>
-                <div class="flex items-center space-x-1 space-x-reverse mt-2">
-                    <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${mainContent}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
-                    <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="الأصل اللغوي" data-target="${mainContent}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
-                    <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${mainContent}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
+                <div class="flex items-center justify-end space-x-1 space-x-reverse mt-2">
+                    <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${fullTextToSpeak}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                    <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${fullTextToSpeak}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
                 </div>`;
             
             dom.etymologyContent.appendChild(etymologyCard);
         }
 
-        async function fetchAndRenderEtymology(word, targetLang) {
+        async function fetchAndRenderEtymology(word, wordLang, explanationLang) {
             dom.etymologyCard.classList.remove('hidden');
             dom.etymologyContent.innerHTML = '';
             dom.noEtymologyMsg.classList.add('hidden');
             dom.etymologyLoader.classList.remove('hidden');
             try {
-                const etymologyData = await getEtymology(word, targetLang);
-                if (etymologyData && (etymologyData.article || etymologyData.etymology)) {
+                const etymologyData = await getEtymology(word, wordLang, explanationLang);
+                if (etymologyData && (etymologyData.grammatical_root || etymologyData.article || etymologyData.etymology)) {
                     renderEtymology(etymologyData);
                 } else {
                     dom.noEtymologyMsg.classList.remove('hidden');
@@ -3146,7 +3180,7 @@
                     const isSingleWord = !text.includes(' ') && text.length > 0;
                     if (isSingleWord) {
                         fetchAndRenderSynonyms(result.text, state.targetLangName, sourceLangName);
-                        fetchAndRenderEtymology(result.text, state.targetLangName);
+                        fetchAndRenderEtymology(result.text, state.targetLangName, sourceLangName);
                         fetchAndRenderExamples(result.text, state.targetLangName, sourceLangName);
                     }
                     
@@ -3171,6 +3205,12 @@
                 if (speechSynthesis.speaking) {
                     speechSynthesis.cancel();
                 }
+                // Hide the button again
+                dom.newTranslationBtn.classList.add('hidden');
+            });
+
+            dom.sourceText.addEventListener('input', () => {
+                dom.newTranslationBtn.classList.toggle('hidden', dom.sourceText.value.trim() === '');
             });
 
             dom.sourceLangBtn.addEventListener('click', () => openLanguageModal('source'));
@@ -3559,6 +3599,19 @@
             dom.closeLiveChatBtn.addEventListener('click', closeLiveChat);
             dom.pauseLiveChatBtn.addEventListener('click', toggleLiveChatPause);
             dom.closeChatViewerBtn.addEventListener('click', closeChatViewer);
+            
+            // إضافة وظيفة لزر حذف النص في حقل إدخال البريد الإلكتروني
+            const clearEmailDetailsBtn = document.getElementById('clear-email-details-btn');
+            const emailDetails = document.getElementById('email-details');
+            
+            emailDetails.addEventListener('input', () => {
+                clearEmailDetailsBtn.classList.toggle('hidden', emailDetails.value.trim() === '');
+            });
+            
+            clearEmailDetailsBtn.addEventListener('click', () => {
+                emailDetails.value = '';
+                clearEmailDetailsBtn.classList.add('hidden');
+            });
         }
         
         function openChatViewer(chatData) {
