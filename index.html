@@ -741,14 +741,14 @@
 
             <div class="card rounded-2xl shadow-lg p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                 <div class="relative">
-                    <textarea id="email-details" class="w-full h-40 bg-transparent border-none focus:ring-0 resize-none text-lg p-2 pr-10" style="color: var(--text-primary);" data-key-placeholder="email_details_placeholder"></textarea>
-                    <button id="clear-email-details-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50 hidden" title="مسح التفاصيل">
-                        <span class="material-symbols-outlined text-sm" style="color: var(--text-secondary);">delete</span>
-                    </button>
+                    <textarea id="email-details" class="w-full h-40 bg-transparent border-none focus:ring-0 resize-none text-lg p-2" style="color: var(--text-primary);" data-key-placeholder="email_details_placeholder"></textarea>
                 </div>
                 
                 <div class="flex justify-between items-center mt-2">
                     <div class="flex items-center gap-2">
+                        <button id="clear-email-details-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50 hidden" title="مسح التفاصيل">
+                            <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">delete_sweep</span>
+                        </button>
                         <div class="relative">
                              <button id="mic-btn-email" class="mic-btn action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-key-title="voice_input_button">
                                 <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">mic</span>
@@ -2520,10 +2520,8 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
                 const exampleCard = document.createElement('div');
                 exampleCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between';
                 
-                // تحديد المثال والترجمة بناءً على لغة الهدف
-                const isTargetLangExample = item.example === item.translation;
-                const primaryExample = isTargetLangExample ? item.example : item.translation;
-                const secondaryExample = isTargetLangExample ? item.translation : item.example;
+                const primaryExample = item.example;
+                const secondaryExample = item.translation;
                 
                 // دائمًا استخدام لغة الهدف (اللغة الناتجة عن الترجمة) للنطق
                 const exampleLang = state.targetLang;
@@ -3181,7 +3179,7 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
                     if (isSingleWord) {
                         fetchAndRenderSynonyms(result.text, state.targetLangName, sourceLangName);
                         fetchAndRenderEtymology(result.text, state.targetLangName, sourceLangName);
-                        fetchAndRenderExamples(result.text, state.targetLangName, sourceLangName);
+                        fetchAndRenderExamples(result.text, sourceLangName, state.targetLangName);
                     }
                     
                     if (result.detectedLang) {
