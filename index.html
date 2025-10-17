@@ -659,14 +659,14 @@
             <div class="card rounded-2xl shadow-lg p-4 min-h-[160px]" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                 <div id="target-text" class="w-full min-h-[90px] text-lg p-2" style="color: var(--text-secondary);"></div>
                 <div id="output-actions" class="flex items-center justify-end space-x-2 space-x-reverse mt-2 hidden">
-                    <button id="copy-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
-                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">content_copy</span>
-                    </button>
                     <button id="tts-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
                         <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">volume_up</span>
                     </button>
                     <button id="favorite-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
                         <span id="favorite-icon" class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">star_outline</span>
+                    </button>
+                    <button id="copy-btn" class="action-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50">
+                        <span class="material-symbols-outlined text-xl" style="color: var(--text-secondary);">content_copy</span>
                     </button>
                 </div>
                 <div id="copy-feedback" class="absolute bottom-4 right-4 bg-gray-800 text-white text-sm py-1 px-3 rounded-full opacity-0 transition-opacity">
@@ -2446,7 +2446,7 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
             }
         }
         
-        function renderEtymology(data) {
+        function renderEtymology(data, word) {
             dom.etymologyContent.innerHTML = '';
             const currentUILang = document.documentElement.lang || 'de';
             const strings = uiStrings[currentUILang];
@@ -2472,6 +2472,17 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
             }
 
             const fullTextToSpeak = [rootContent, articleContent, etymologyContent].filter(Boolean).join('. ');
+            const fullTextForFavorite = [
+                (rootContent ? `${strings.etymology_grammatical_root}: ${rootContent}` : null),
+                (articleContent ? `${strings.etymology_article}: ${articleContent}` : null),
+                (etymologyContent ? `${strings.etymology_linguistic_origin}: ${etymologyContent}` : null)
+            ].filter(Boolean).join('\n');
+
+            const isFavorited = state.favorites.some(f => f.sourceText === word && f.targetText === fullTextForFavorite);
+            const starIcon = isFavorited ? 'star' : 'star_outline';
+            const starStyle = isFavorited 
+                ? `color: #facc15; font-variation-settings: 'FILL' 1;` 
+                : `color: var(--text-secondary); font-variation-settings: 'FILL' 0;`;
 
             const etymologyCard = document.createElement('div');
             etymologyCard.className = 'item-card dark:bg-gray-700/50 p-3 rounded-lg flex flex-col';
@@ -2482,6 +2493,7 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
                 </div>
                 <div class="flex items-center justify-end space-x-1 space-x-reverse mt-2">
                     <button class="action-btn tts-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${fullTextToSpeak}" data-lang="${state.targetLang}" title="تشغيل صوتي"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">volume_up</span></button>
+                    <button class="action-btn favorite-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-source="${word}" data-target="${fullTextForFavorite}" title="إضافة للمفضلة"><span class="material-symbols-outlined text-xl pointer-events-none" style="${starStyle}">${starIcon}</span></button>
                     <button class="action-btn copy-item-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/50" data-text="${fullTextToSpeak}" title="نسخ"><span class="material-symbols-outlined text-xl pointer-events-none" style="color: var(--text-secondary);">content_copy</span></button>
                 </div>`;
             
@@ -2496,7 +2508,7 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
             try {
                 const etymologyData = await getEtymology(word, wordLang, explanationLang);
                 if (etymologyData && (etymologyData.grammatical_root || etymologyData.article || etymologyData.etymology)) {
-                    renderEtymology(etymologyData);
+                    renderEtymology(etymologyData, word);
                 } else {
                     dom.noEtymologyMsg.classList.remove('hidden');
                 }
@@ -3290,6 +3302,7 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
             }
             dom.synonymsList.addEventListener('click', handleItemCardActions);
             dom.examplesList.addEventListener('click', handleItemCardActions);
+            dom.etymologyContent.addEventListener('click', handleItemCardActions);
             
             dom.generateEmailBtn.addEventListener('click', async () => {
                 const details = dom.emailDetails.value.trim();
