@@ -2956,44 +2956,62 @@ You MUST respond in the valid JSON format specified in the schema. Do not add an
             liveSpeechRecognition.interimResults = true;
             liveSpeechRecognition.lang = document.documentElement.lang;
 
+            let silenceTimeout = null;
+            // liveFinalTranscript is a global variable. It's reset in the onend handler after being processed.
+
             liveSpeechRecognition.onstart = () => {
                 if (!state.isLiveChatPaused) setLiveChatState('listening');
             };
 
             liveSpeechRecognition.onresult = (event) => {
-                let final_transcript_chunk = '';
+                // Clear the silence timer because the user is still speaking.
+                clearTimeout(silenceTimeout);
+
                 let interim_transcript = '';
+                let final_transcript_since_last_event = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        final_transcript_chunk += event.results[i][0].transcript;
+                        final_transcript_since_last_event += event.results[i][0].transcript;
                     } else {
                         interim_transcript += event.results[i][0].transcript;
                     }
                 }
-                
-                if (final_transcript_chunk.trim()) {
-                    liveFinalTranscript = final_transcript_chunk;
-                    liveSpeechRecognition.stop(); 
+
+                // Append the new final part to the full transcript.
+                if (final_transcript_since_last_event) {
+                    liveFinalTranscript += final_transcript_since_last_event + ' ';
                 }
 
+                // Update the display with the latest transcript.
                 updateLiveTranscript(liveFinalTranscript, interim_transcript);
+
+                // Set a timer. If no new results come in for 1 second, we'll consider the user finished.
+                silenceTimeout = setTimeout(() => {
+                    liveSpeechRecognition.stop();
+                }, 1000);
             };
 
             liveSpeechRecognition.onerror = (event) => {
                 console.error('Live Speech Recognition Error:', event.error);
-                if(event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') {
-                    if(state.isLiveChatActive && !state.isLiveChatPaused) {
-                    }
-                }
+                clearTimeout(silenceTimeout);
+                // 'aborted' is expected when we call stop(). 'no-speech' can happen.
+                // The onend handler will gracefully restart listening if needed.
             };
             
             liveSpeechRecognition.onend = () => {
+                clearTimeout(silenceTimeout);
                 if (state.isLiveChatActive && !state.isLiveChatPaused) {
-                    if (liveFinalTranscript.trim()) {
-                        getLiveAIResponse(liveFinalTranscript);
-                        liveFinalTranscript = ''; 
+                    const finalSpokenText = liveFinalTranscript.trim();
+                    if (finalSpokenText) {
+                        // We have the full text, now get the AI response.
+                        getLiveAIResponse(finalSpokenText);
+                        liveFinalTranscript = ''; // Reset for the next turn.
                     } else {
-                        liveSpeechRecognition.start();
+                        // If recognition ended without any final text (e.g., timeout after AI spoke),
+                        // just start listening again, unless the AI is about to speak.
+                        if (!speechSynthesis.speaking) {
+                           liveSpeechRecognition.start();
+                        }
                     }
                 }
             };
